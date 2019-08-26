@@ -30,6 +30,10 @@ private slots:
 
     void on__PushButtonStop_clicked();
 
+    void on__PushButtonForTask_clicked();
+
+    void on__PushButtonNext_clicked();
+
 private:
     Ui::Widget *ui;
     QButtonGroup * _ButtonGroup;
@@ -37,7 +41,11 @@ private:
     int _fuck=0;
     int _whichTabWidget=0;
     QTimer _timer;
+    QTimer _timerForDetail;
     int ii=0;
+    QVector<int> _qvectorForData;
+    int _indexForQvector=0;
+
 };
 
 #endif // WIDGET_H

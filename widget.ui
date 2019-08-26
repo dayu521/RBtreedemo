@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>678</width>
-    <height>390</height>
+    <width>697</width>
+    <height>388</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -19,7 +19,7 @@
   <property name="windowTitle">
    <string>Widget</string>
   </property>
-  <layout class="QHBoxLayout" name="horizontalLayout_7">
+  <layout class="QHBoxLayout" name="horizontalLayout_5">
    <item>
     <widget class="TreeShow" name="_TreeShow">
      <property name="sizePolicy">
@@ -46,7 +46,7 @@
     </widget>
    </item>
    <item>
-    <layout class="QGridLayout" name="gridLayout">
+    <layout class="QGridLayout" name="gridLayout_2">
      <item row="0" column="0">
       <layout class="QHBoxLayout" name="horizontalLayout_3">
        <item>
@@ -101,7 +101,7 @@
         <enum>QTabWidget::Triangular</enum>
        </property>
        <property name="currentIndex">
-        <number>1</number>
+        <number>2</number>
        </property>
        <property name="usesScrollButtons">
         <bool>true</bool>
@@ -148,7 +148,7 @@
               <number>999</number>
              </property>
              <property name="value">
-              <number>20</number>
+              <number>10</number>
              </property>
             </widget>
            </item>
@@ -241,12 +241,17 @@
         <attribute name="title">
          <string>插入删除模拟</string>
         </attribute>
+        <layout class="QHBoxLayout" name="horizontalLayout_7">
+         <item>
+          <widget class="QLCDNumber" name="lcdNumber"/>
+         </item>
+        </layout>
        </widget>
       </widget>
      </item>
      <item row="2" column="0">
-      <layout class="QHBoxLayout" name="horizontalLayout_5">
-       <item>
+      <layout class="QGridLayout" name="gridLayout">
+       <item row="0" column="0">
         <widget class="QPushButton" name="_PushButtonStart">
          <property name="maximumSize">
           <size>
@@ -259,7 +264,7 @@
          </property>
         </widget>
        </item>
-       <item>
+       <item row="0" column="1">
         <widget class="QPushButton" name="_PushButtonStop">
          <property name="maximumSize">
           <size>
@@ -272,7 +277,7 @@
          </property>
         </widget>
        </item>
-       <item>
+       <item row="0" column="2">
         <widget class="QPushButton" name="_PushButtonStep1">
          <property name="maximumSize">
           <size>
@@ -285,7 +290,7 @@
          </property>
         </widget>
        </item>
-       <item>
+       <item row="0" column="3">
         <widget class="QPushButton" name="_PushButtonInitial">
          <property name="maximumSize">
           <size>
@@ -294,7 +299,45 @@
           </size>
          </property>
          <property name="text">
-          <string>初始化</string>
+          <string>初始化树</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QPushButton" name="_PushButtonForTask">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>70</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>生成任务</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QPushButton" name="_PushButtonNext">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>70</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>下一帧</string>
          </property>
         </widget>
        </item>

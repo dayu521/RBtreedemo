@@ -17,7 +17,12 @@ Widget::Widget(QWidget *parent) :
                                                   .arg(ui->_TreeShow->width())
                                                   .arg(ui->_TreeShow->height()));});
     _timer.setInterval(500);
+    _timerForDetail.setInterval(200);
     connect(&_timer,&QTimer::timeout,[=](){ui->_TreeShow->drawPicture(ii++,_fuck);});
+    connect(&_timerForDetail,&QTimer::timeout,[=](){if(!ui->_TreeShow->drawPicture())
+            _timer.stop();});
+    connect(ui->_TreeShow,&TreeShow::nextValueReady,[=](){ui->lcdNumber->display(_qvectorForData[++_indexForQvector]);});
+    std::srand(time(0));
 }
 
 Widget::~Widget()
@@ -50,7 +55,7 @@ void Widget::on__PushButtonStep1_clicked()
             showInfo("Wrong range:","");
             return;
         }
-        std::srand(time(0));
+
 
         for(auto a=0;a<_count;a++)
             ui->_TreeShow->drawPicture(_rangeLeft+rand()%bb,_fuck);
@@ -60,7 +65,13 @@ void Widget::on__PushButtonStep1_clicked()
 
 void Widget::on__PushButtonInitial_clicked()
 {
-    ui->_TreeShow->clearPicture();
+    //    ui->_TreeShow->clearPicture();
+    if(ui->_CheckBoxForShowDetail->isChecked())
+        ui->_TreeShow->clearPictureForDraw();
+    _timerForDetail.stop();
+    _qvectorForData.empty();
+    ui->lcdNumber->display(0);
+    ui->_PushButtonForTask->setDisabled(false);
 }
 
 
@@ -72,10 +83,43 @@ void Widget::on_tabWidget_tabBarClicked(int index)
 
 void Widget::on__PushButtonStart_clicked()
 {
-    _timer.start();
+    if(ui->_CheckBoxForShowDetail->isChecked()){
+        if(_timerForDetail.isActive())
+            return;
+        _timerForDetail.start();
+        ui->lcdNumber->display(_qvectorForData[0]);
+        ui->_CheckBoxForShowDetail->setDisabled(true);
+    }
+    else{
+        if(_timer.isActive())
+            return
+                    _timer.start();
+    }
 }
 
 void Widget::on__PushButtonStop_clicked()
 {
-    _timer.stop();
+    if(ui->_CheckBoxForShowDetail->isChecked()){
+        _timerForDetail.stop();
+        ui->_CheckBoxForShowDetail->setDisabled(false);
+    }
+    else
+        _timer.stop();
+}
+
+void Widget::on__PushButtonForTask_clicked()
+{
+    ui->_TreeShow->clearPictureForDraw();
+    for(auto a=0;a<30;a++){
+        auto i=rand()%100;
+        ui->_TreeShow->taskOfInsert(i);
+        _qvectorForData.append(i);
+    }
+    ui->_TreeShow->setIsClear(false);
+    ui->_PushButtonForTask->setDisabled(true);
+}
+
+void Widget::on__PushButtonNext_clicked()
+{
+    ui->_TreeShow->drawPicture();
 }
