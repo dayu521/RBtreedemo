@@ -22,6 +22,7 @@ TreeShow::~TreeShow()
     delete NIL;
     delete pix;
     emptyRBtree(root);
+    emptyRbtreeForDraw(_rootForDraw);
 }
 
 void TreeShow::initial()
@@ -30,10 +31,10 @@ void TreeShow::initial()
     RBtreeNodeInitial();
 }
 
-void TreeShow::taskOfInsert(int i)
+bool TreeShow::taskOfInsert(int i)
 {
 
-        insert2(i);
+     return insert2(i);
 
 }
 
@@ -66,14 +67,17 @@ bool TreeShow::drawPicture()
 
 void TreeShow::clearPictureForDraw()
 {
-    if(_isClearForDraw)
-        return ;
+//    if(_isClearForDraw)
+//        return ;
     _sentinelForDraw->_prev=_sentinelForDraw->_next=_sentinelForDraw;
     emptyRBtree(root);
     root=NIL;
     emptyRbtreeForDraw(_rootForDraw);
     _rootForDraw=_NILForDraw;
-    _hashForNodeItem.empty();
+    _hashForNodeItem.clear();
+    _arrayForOrder.clear();
+    _hashForNodeItem.insert(_NILForDraw->_value,_NILForDraw);
+    _step=0;
     pix->fill();
     _isClearForDraw=true;
     update();
@@ -116,7 +120,7 @@ void TreeShow::fillPropertyInInsert(Node<int> *_nodeItem)
     _pCurrent->_next->_prev=_nodeItem;
     _nodeItem->_prev=_pCurrent;
     _pCurrent->_next=_nodeItem;
-    //set right infomation without x by levelorder
+    //set correct infomation without x by levelorder
     Node<int> * temp=nullptr;
     root->color=Black;
     _sentinel->y=-1;
@@ -210,12 +214,15 @@ void TreeShow::drawAllElement(QPainter &_painter,  NodeItem *_nodeItem)
     if(_nodeItem!=_NILForDraw){
         drawAllElement(_painter,_nodeItem->_left);
         drawAllElement(_painter,_nodeItem->_right);
+        //draw line
         if(_nodeItem->xParent>0)
             _painter.drawLine(_nodeItem->x*_diameter/2,_nodeItem->y*_nodeLineWidth,_nodeItem->xParent*_diameter/2,_nodeItem->yParent*_nodeLineWidth);
+        //draw cycle
         QPainterPath myPath;
         myPath.addEllipse(QPoint(_nodeItem->x*_diameter/2,_nodeItem->y*_nodeLineWidth),_radius,_radius);
         _painter.drawPath(myPath);
         _painter.fillPath(myPath,_nodeItem->color==Red?Qt::red:Qt::black);
+        //draw text
         _painter.setPen(Qt::white);
         _painter.drawText(QRect(_nodeItem->x*_diameter/2-_radius,_nodeItem->y*_nodeLineWidth-_radius,_diameter,_diameter),Qt::AlignCenter,QString::number(_nodeItem->_value));
         _painter.setPen(Qt::black);
@@ -233,8 +240,15 @@ void TreeShow::search(TreeShow::Action &action)
     pp.setFont(font);
     drawAllElement(pp,_rootForDraw);
 
-    pp.setPen(Qt::PenStyle::DashLine);
-    pp.drawEllipse(QPoint(_nodeItem->x*_diameter/2,_nodeItem->y*_nodeLineWidth),_radius+5,_radius+5);
+//    pp.setPen(Qt::PenStyle::DashLine);
+//    pp.drawEllipse(QPoint(_nodeItem->x*_diameter/2,_nodeItem->y*_nodeLineWidth),_radius+5,_radius+5);
+    QPainterPath myPath;
+    myPath.addEllipse(QPoint(_nodeItem->x*_diameter/2,_nodeItem->y*_nodeLineWidth),_radius+5,_radius+5);
+    pp.drawPath(myPath);
+    pp.fillPath(myPath,_nodeItem->color==Red?Qt::red:Qt::black);
+    pp.setPen(Qt::white);
+    pp.drawText(QRect(_nodeItem->x*_diameter/2-_radius,_nodeItem->y*_nodeLineWidth-_radius,_diameter,_diameter),Qt::AlignCenter,QString::number(_nodeItem->_value));
+    pp.setPen(Qt::black);
 }
 
 void TreeShow::add(TreeShow::Action &action)
@@ -248,7 +262,7 @@ void TreeShow::add(TreeShow::Action &action)
         _parentNode->_left=_newNode;
     else
         _parentNode->_right=_newNode;
-    emit nextValueReady();
+
     fillPropertyInInsert(_newNode);
     pix->fill();
     QPainter pp(pix);
@@ -315,6 +329,11 @@ void TreeShow::paintBlack()
     drawChangedColor(this->_rootForDraw);
 }
 
+void TreeShow::done()
+{
+    emit nextValueReady();
+}
+
 void TreeShow::emptyRbtreeForDraw(NodeItem *&root)
 {
     if(root!=_NILForDraw)
@@ -345,6 +364,9 @@ void TreeShow::dispatchAction(Action &action)
         break;
     case Operator::PaintBlack:
         paintBlack();
+        break;
+    case Operator::Done:
+        done();
         break;
     }
 }
@@ -395,7 +417,7 @@ void TreeShow::insert(Node<int> *&root, Node<int> *parent, int x) {
         ;	//重复
 }
 
-void TreeShow::insert2(int x)
+bool TreeShow::insert2(int x)
 {
     auto temp=root;
     //红黑树在调整时,其哨兵节点NIL的父节点在旋转过程中会改变,因此,在树进行一轮清空后,
@@ -414,8 +436,10 @@ void TreeShow::insert2(int x)
         else
             break;
     }
-    if(temp!=NIL)
-        return ;
+    if(temp!=NIL){
+        _arrayForOrder.append({Operator::Done,{0}});
+        return false;
+    }
     auto newNode=new Node<int>(x,tempParent,NIL,NIL);
     if(tempParent==NIL){
         root=newNode;
@@ -433,7 +457,8 @@ void TreeShow::insert2(int x)
         _arrayForOrder.append({Operator::Add,{x,tempParent->item}});
     }
     insertionFixUpOfDoubleRed(newNode);
-
+    _arrayForOrder.append({Operator::Done,{0}});
+    return true;
 }
 
 void TreeShow::remove(Node<int> *&root, Node<int> *parent, int x) {

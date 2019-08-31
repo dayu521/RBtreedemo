@@ -27,14 +27,18 @@ CONFIG += c++11
 SOURCES += \
         main.cpp \
         widget.cpp \
-    treeshow.cpp
+    treeshow.cpp \
+    form2.cpp
 
 HEADERS += \
         widget.h \
-    treeshow.h
+    treeshow.h \
+    form2.h
 
 FORMS += \
-        widget.ui
+        widget.ui \
+    form.ui \
+    form2.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
