@@ -31,21 +31,55 @@ void TreeShow::initial()
     RBtreeNodeInitial();
 }
 
+void TreeShow::takePicture()
+{
+    QPainter pp(pix);
+    pix->fill();
+    pp.translate(0,_diameter/2);
+    QFont font = pp.font();
+    font.setPixelSize(_fontSize);
+    pp.setFont(font);
+    drawAllElement(pp,_rootForDraw);
+    pp.end();
+    auto x=_step-1;
+    if(_arrayForOrder[x]._ope==Operator::Search)
+        search(_arrayForOrder[x]);
+    update();
+}
+
 bool TreeShow::taskOfInsert(int i)
 {
-
+    _qvectorForData.append(i);
      return insert2(i);
 
 }
 
-void TreeShow::setPixMapTo(int width, int height)
+void TreeShow::setPixMapTo(int diameter, int height)
 {
     auto pold=pix;
+//    int factor=this->width()/this->height();
     pix=new QPixmap(this->width(),this->height());
-    _diameter=this->width()/100;
+    pix->fill();
+    delete  pold;
+    update();
+}
+
+void TreeShow::setTreeNodeDiameter(int diameter)
+{
+    _diameter=diameter;
     _radius=_diameter/2;
     _fontSize=_radius;
-    delete  pold;
+    _nodeLineWidth = 4 * _radius;
+}
+
+int TreeShow::getTreeNodeDiameter() const
+{
+    return _diameter;
+}
+
+int TreeShow::getAllTreeNodeCount() const
+{
+    return _nodeSize;
 }
 
 void TreeShow::drawPicture(int x, int operation)
@@ -86,8 +120,13 @@ void TreeShow::clearPictureForDraw()
     _rootForDraw=_NILForDraw;
     _hashForNodeItem.clear();
     _arrayForOrder.clear();
+    _qvectorForData.clear();
     _hashForNodeItem.insert(_NILForDraw->_value,_NILForDraw);
     _step=0;
+    _indexForQvector=0;
+    _xTranslationOffset=0;
+    _yTranslationOffset=0;
+    _nodeSize=0;
     pix->fill();
     _isClearForDraw=true;
     update();
@@ -107,9 +146,9 @@ void TreeShow::paintEvent(QPaintEvent *event)
     if(_IsChangeWidgetSize)
         return;
     QPainter p(this);
-//    p.setWindow(0,0,2000,800);
+//    p.translate(_xTranslationOffset,_yTranslationOffset);
     p.drawPixmap(0,0,*pix);
-    p.drawPixmap(0,0,pix->scaled(width(),height()));
+//    p.drawPixmap(0,0,pix->scaled(width(),height()));
 
 }
 
@@ -246,15 +285,12 @@ void TreeShow::search(TreeShow::Action &action)
     auto _nodeItem=_hashForNodeItem.value(action.array[0]);
     pix->fill();
     QPainter pp(pix);
-    pp.setWindow(0,0,width(),height());
     pp.translate(0,_diameter/2);
     QFont font = pp.font();
     font.setPixelSize(_fontSize);
     pp.setFont(font);
     drawAllElement(pp,_rootForDraw);
 
-//    pp.setPen(Qt::PenStyle::DashLine);
-//    pp.drawEllipse(QPoint(_nodeItem->x*_diameter/2,_nodeItem->y*_nodeLineWidth),_radius+5,_radius+5);
     QPainterPath myPath;
     myPath.addEllipse(QPoint(_nodeItem->x*_diameter/2,_nodeItem->y*_nodeLineWidth),_radius+5,_radius+5);
     pp.drawPath(myPath);
@@ -279,7 +315,6 @@ void TreeShow::add(TreeShow::Action &action)
     fillPropertyInInsert(_newNode);
     pix->fill();
     QPainter pp(pix);
-    pp.setWindow(0,0,width(),height());
     pp.translate(0,_diameter/2);
     QFont font = pp.font();
     font.setPixelSize(_fontSize);
@@ -297,7 +332,7 @@ void TreeShow::rotate(TreeShow::Action &action)
     setY();
     pix->fill();
     QPainter pp(pix);
-    pp.setWindow(0,0,width(),height());
+//    pp.setWindow(0,0,width(),height());
     pp.translate(0,_diameter/2);
     QFont font = pp.font();
     font.setPixelSize(_fontSize);
@@ -317,7 +352,7 @@ void TreeShow::changeColor(TreeShow::Action &action)
         node3->color=action.array[5]==0?Red:Black;
     }
     QPainter pp(pix);
-    pp.setWindow(0,0,width(),height());
+//    pp.setWindow(0,0,width(),height());
     pp.translate(0,_diameter/2);
     QFont font = pp.font();
     font.setPixelSize(_fontSize);
@@ -343,7 +378,7 @@ void TreeShow::paintBlack()
 {
     this->_rootForDraw->color=Black;
     QPainter pp(pix);
-    pp.setWindow(0,0,width(),height());
+//    pp.setWindow(0,0,width(),height());
     pp.translate(0,_diameter/2);
     QFont font = pp.font();
     font.setPixelSize(_fontSize);
@@ -353,7 +388,8 @@ void TreeShow::paintBlack()
 
 void TreeShow::done()
 {
-    emit nextValueReady();
+    if(_qvectorForData.size()>_indexForQvector)
+        emit nextValueReady(_qvectorForData[_indexForQvector++]);
 }
 
 void TreeShow::emptyRbtreeForDraw(NodeItem *&root)
@@ -441,6 +477,7 @@ void TreeShow::insert(Node<int> *&root, Node<int> *parent, int x) {
 
 bool TreeShow::insert2(int x)
 {
+    _arrayForOrder.append({Operator::Done,{0}});
     auto temp=root;
     //红黑树在调整时,其哨兵节点NIL的父节点在旋转过程中会改变,因此,在树进行一轮清空后,
     //此时root=NIL,即root.parent不再是NIL.所以这里不可以写成root->parent
@@ -459,10 +496,11 @@ bool TreeShow::insert2(int x)
             break;
     }
     if(temp!=NIL){
-        _arrayForOrder.append({Operator::Done,{0}});
+//        _arrayForOrder.append({Operator::Done,{0}});
         return false;
     }
     auto newNode=new Node<int>(x,tempParent,NIL,NIL);
+    _nodeSize++;
     if(tempParent==NIL){
         root=newNode;
         _arrayForOrder.append({Operator::Add,{x,tempParent->item}});
@@ -479,7 +517,7 @@ bool TreeShow::insert2(int x)
         _arrayForOrder.append({Operator::Add,{x,tempParent->item}});
     }
     insertionFixUpOfDoubleRed(newNode);
-    _arrayForOrder.append({Operator::Done,{0}});
+//    _arrayForOrder.append({Operator::Done,{0}});
     return true;
 }
 
