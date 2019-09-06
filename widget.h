@@ -35,6 +35,12 @@ private slots:
 
     void on_checkBox_stateChanged(int arg1);
 
+    void on__PushButtonStep1_4_clicked();
+
+    void on_spinBox_2_editingFinished();
+
+    void on_spinBox_2_valueChanged(int arg1);
+
 private:
     Ui::Widget *ui;
     QButtonGroup * _ButtonGroup;
@@ -44,8 +50,7 @@ private:
     QTimer _timer;
     QTimer _timerForDetail;
     int ii=0;
-    QVector<int> _qvectorForData;
-    int _indexForQvector=0;
+    bool _taskRead=false;
 
 };
 

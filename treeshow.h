@@ -26,12 +26,16 @@ public:
         Done
     };
     bool taskOfInsert(int i);
+    void takePicture();
     void setIsClear(bool isClear) { _isClearForDraw = isClear; }
-    void setPixMapTo(int width,int height);
+    void setPixMapTo(int diameter,int height);
+    void setTreeNodeDiameter(int diameter);
+    int  getTreeNodeDiameter()const;
+    int  getAllTreeNodeCount()const;
 
 signals:
     void setpix();
-    void nextValueReady();
+    void nextValueReady(int nextValue);
 
 public slots:
     void drawPicture(int x, int operation);
@@ -73,9 +77,9 @@ private:
 private:
     QPixmap *pix;
     int _pixWidth = 2000;
-    int _pixHeight = 800;
+    int _pixHeight = 1000;
     int _CycleRadiusMax = 20;
-    int _diameter = 40;
+    int _diameter = _pixWidth/50;
     int _radius = _diameter / 2;
     int _nodeLineWidth = 3 * _diameter / 2;
     int _fontSize=_radius;
@@ -84,6 +88,8 @@ private:
     QTimer timer;
     bool _IsChangeWidgetSize = false;
 
+    QVector<int> _qvectorForData;
+    int _indexForQvector=0;
     Node<int> *root;
     NodeItem *_rootForDraw;
     Node<int> *NIL;
@@ -96,6 +102,10 @@ private:
     QHash<int, NodeItem *> _hashForNodeItem;
     int _step = 0;
     bool _isClearForDraw = false;
+
+    int _nodeSize=0;
+    int _xTranslationOffset=0;
+    int _yTranslationOffset=0;
 
     // QWidget interface
 protected:
@@ -154,22 +164,22 @@ private:
     struct Action {
         Operator _ope;
 
-        /* 1.增加节点:
-     *  0:新节点
-     *  1:父节点
+    /* 1.增加节点
+     *  索引0:新节点值
+     *  索引1:父节点值
      * 2.旋转
-     *  0:旋转父节点
-     *  1:0与左孩子旋转,1与右孩子旋转
+     *  索引0:父节点值
+     *  索引1:值为0与左孩子旋转,值为1与右孩子旋转
      * 3.变色
-     *  0=1
-     *  2=3
-     *  4=5
+     *  索引0:当前值,索引1:颜色
+     *  索引2:当前值,索引3:颜色
+     *  索引4:当前值,索引5:颜色
      *  三个键值对组成
      * 4.删除过程中具有两个子节点的被删除节点最小节点被替换成右子树
      *  0:要删除的节点
      *  1:找到的最小节点
      * 5.查找过程
-     *  0:当前节点
+     *  索引0:当前节点值
      */
         int array[6];
     };

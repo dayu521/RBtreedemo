@@ -22,7 +22,7 @@ Widget::Widget(QWidget *parent) : QWidget(parent), ui(new Ui::Widget) {
                                      .arg(ui->_TreeShow->height()));
     });
     _timer.setInterval(500);
-    _timerForDetail.setInterval(50);
+    _timerForDetail.setInterval(100);
     connect(&_timer, &QTimer::timeout,
             [=]() { ui->_TreeShow->drawPicture(ii++, _fuck); });
     connect(&_timerForDetail, &QTimer::timeout, [=]() {
@@ -31,8 +31,8 @@ Widget::Widget(QWidget *parent) : QWidget(parent), ui(new Ui::Widget) {
             showInfo("Done", "");
         }
     });
-    connect(ui->_TreeShow, &TreeShow::nextValueReady, [=]() {
-        ui->lcdNumber->display(_qvectorForData[++_indexForQvector]);
+    connect(ui->_TreeShow, &TreeShow::nextValueReady, [=](int a) {
+        ui->lcdNumber->display(a);
     });
     std::srand(time(0));
 }
@@ -71,13 +71,13 @@ void Widget::on__PushButtonStep1_clicked() {
 
 void Widget::on__PushButtonInitial_clicked() {
     _timerForDetail.stop();
+    _taskRead=false;
     //    ui->_TreeShow->clearPicture();
     if (ui->_CheckBoxForShowDetail->isChecked())
         ui->_TreeShow->clearPictureForDraw();
-    _qvectorForData.clear();
-    _indexForQvector=0;
     ui->lcdNumber->display(0);
     ui->_PushButtonForTask->setDisabled(false);
+    ui->_PushButtonStep1_4->setDisabled(false);
 }
 
 void Widget::on_tabWidget_tabBarClicked(int index) {
@@ -92,7 +92,6 @@ void Widget::on__PushButtonStart_clicked() {
     if (ui->_CheckBoxForShowDetail->isChecked()) {
         if (_timerForDetail.isActive()) return;
         _timerForDetail.start();
-        ui->lcdNumber->display(_qvectorForData[0]);
         ui->_CheckBoxForShowDetail->setDisabled(true);
     } else {
         if (_timer.isActive()) return _timer.start();
@@ -109,14 +108,16 @@ void Widget::on__PushButtonStop_clicked() {
 
 void Widget::on__PushButtonForTask_clicked() {
     ui->_TreeShow->clearPictureForDraw();
-    for (auto a = 0; a < 140; a++) {
+    for (auto a = 0; a < 120; a++) {
         auto i = rand() % 200;
+//        auto i = a+1;
         ui->_TreeShow->taskOfInsert(i);
-        _qvectorForData.append(i);
     }
     ui->_TreeShow->setIsClear(false);
-    _qvectorForData.append(0);  //防止越界
     ui->_PushButtonForTask->setDisabled(true);
+    ui->_PushButtonStep1_4->setDisabled(true);
+    showInfo("共插入: %1 个节点",ui->_TreeShow->getAllTreeNodeCount());
+    _taskRead=true;
 }
 
 void Widget::on__PushButtonNext_clicked() { ui->_TreeShow->drawPicture(); }
@@ -134,4 +135,23 @@ void Widget::on_checkBox_stateChanged(int arg1)
         ui->_PushButtonStep1_2->setVisible(true);
     }
 
+}
+
+void Widget::on__PushButtonStep1_4_clicked()
+{
+//    ui->_TreeShow->setPixMapTo(0,0);
+
+}
+
+void Widget::on_spinBox_2_editingFinished()
+{
+
+}
+
+void Widget::on_spinBox_2_valueChanged(int arg1)
+{
+    _timerForDetail.stop();
+    ui->_TreeShow->setTreeNodeDiameter(arg1);
+    if(_taskRead)
+        ui->_TreeShow->takePicture();
 }
