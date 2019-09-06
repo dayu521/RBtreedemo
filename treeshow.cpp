@@ -38,6 +38,16 @@ bool TreeShow::taskOfInsert(int i)
 
 }
 
+void TreeShow::setPixMapTo(int width, int height)
+{
+    auto pold=pix;
+    pix=new QPixmap(this->width(),this->height());
+    _diameter=this->width()/100;
+    _radius=_diameter/2;
+    _fontSize=_radius;
+    delete  pold;
+}
+
 void TreeShow::drawPicture(int x, int operation)
 {
     if(operation==1)
@@ -97,7 +107,9 @@ void TreeShow::paintEvent(QPaintEvent *event)
     if(_IsChangeWidgetSize)
         return;
     QPainter p(this);
-    p.drawPixmap(0,0,pix->scaled(width(),height(),Qt::KeepAspectRatio));
+//    p.setWindow(0,0,2000,800);
+    p.drawPixmap(0,0,*pix);
+    p.drawPixmap(0,0,pix->scaled(width(),height()));
 
 }
 
@@ -189,7 +201,7 @@ void TreeShow::fillPropertyInInsert(TreeShow::NodeItem *_nodeItem)
 {
     //insert value into linkedlist-ordered and update x coordinate
     setX(_nodeItem);
-    //set right infomation without x by levelorder
+    //set right infomation left without x by level-order
     setY();
 }
 
@@ -234,9 +246,10 @@ void TreeShow::search(TreeShow::Action &action)
     auto _nodeItem=_hashForNodeItem.value(action.array[0]);
     pix->fill();
     QPainter pp(pix);
+    pp.setWindow(0,0,width(),height());
     pp.translate(0,_diameter/2);
     QFont font = pp.font();
-    font.setPixelSize(36);
+    font.setPixelSize(_fontSize);
     pp.setFont(font);
     drawAllElement(pp,_rootForDraw);
 
@@ -266,9 +279,10 @@ void TreeShow::add(TreeShow::Action &action)
     fillPropertyInInsert(_newNode);
     pix->fill();
     QPainter pp(pix);
+    pp.setWindow(0,0,width(),height());
     pp.translate(0,_diameter/2);
     QFont font = pp.font();
-    font.setPixelSize(36);
+    font.setPixelSize(_fontSize);
     pp.setFont(font);
     drawAllElement(pp,_rootForDraw);
 }
@@ -283,9 +297,10 @@ void TreeShow::rotate(TreeShow::Action &action)
     setY();
     pix->fill();
     QPainter pp(pix);
+    pp.setWindow(0,0,width(),height());
     pp.translate(0,_diameter/2);
     QFont font = pp.font();
-    font.setPixelSize(36);
+    font.setPixelSize(_fontSize);
     pp.setFont(font);
     drawAllElement(pp,_rootForDraw);
 }
@@ -301,19 +316,20 @@ void TreeShow::changeColor(TreeShow::Action &action)
         node3=_hashForNodeItem.value(action.array[4]);
         node3->color=action.array[5]==0?Red:Black;
     }
+    QPainter pp(pix);
+    pp.setWindow(0,0,width(),height());
+    pp.translate(0,_diameter/2);
+    QFont font = pp.font();
+    font.setPixelSize(_fontSize);
+    pp.setFont(font);
     for(auto x:{node1,node2,node3})
-        drawChangedColor(x);
+        drawChangedColor(x,pp);
 }
 
-void TreeShow:: drawChangedColor(NodeItem * root)
+void TreeShow:: drawChangedColor(NodeItem * root,QPainter & pp)
 {
     if(root==nullptr)
         return;
-    QPainter pp(pix);
-    pp.translate(0,_diameter/2);
-    QFont font = pp.font();
-    font.setPixelSize(36);
-    pp.setFont(font);
     QPainterPath myPath;
     myPath.addEllipse(QPoint(root->x*_diameter/2,root->y*_nodeLineWidth),_radius,_radius);
     pp.drawPath(myPath);
@@ -326,7 +342,13 @@ void TreeShow:: drawChangedColor(NodeItem * root)
 void TreeShow::paintBlack()
 {
     this->_rootForDraw->color=Black;
-    drawChangedColor(this->_rootForDraw);
+    QPainter pp(pix);
+    pp.setWindow(0,0,width(),height());
+    pp.translate(0,_diameter/2);
+    QFont font = pp.font();
+    font.setPixelSize(_fontSize);
+    pp.setFont(font);
+    drawChangedColor(this->_rootForDraw,pp);
 }
 
 void TreeShow::done()

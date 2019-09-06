@@ -27,13 +27,11 @@ CONFIG += c++11
 SOURCES += \
         main.cpp \
         widget.cpp \
-    treeshow.cpp \
-    form2.cpp
+    treeshow.cpp
 
 HEADERS += \
         widget.h \
-    treeshow.h \
-    form2.h
+    treeshow.h
 
 FORMS += \
         widget.ui \

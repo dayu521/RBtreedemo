@@ -23,7 +23,6 @@ private slots:
 
     void on__PushButtonInitial_clicked();
 
-
     void on_tabWidget_tabBarClicked(int index);
 
     void on__PushButtonStart_clicked();
@@ -33,6 +32,8 @@ private slots:
     void on__PushButtonForTask_clicked();
 
     void on__PushButtonNext_clicked();
+
+    void on_checkBox_stateChanged(int arg1);
 
 private:
     Ui::Widget *ui;

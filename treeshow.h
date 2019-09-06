@@ -27,6 +27,7 @@ public:
     };
     bool taskOfInsert(int i);
     void setIsClear(bool isClear) { _isClearForDraw = isClear; }
+    void setPixMapTo(int width,int height);
 
 signals:
     void setpix();
@@ -63,7 +64,7 @@ private:
     void changeColor(Action &action);
     void paintBlack();
     void done();
-    void drawChangedColor(NodeItem *root);
+    void drawChangedColor(NodeItem *root,QPainter & pp);
 
     void emptyRbtreeForDraw(NodeItem *&root);
 
@@ -71,12 +72,13 @@ private:
 
 private:
     QPixmap *pix;
-    int _pixWidth = 1366;
-    int _pixHeight = 768;
+    int _pixWidth = 2000;
+    int _pixHeight = 800;
     int _CycleRadiusMax = 20;
     int _diameter = 40;
     int _radius = _diameter / 2;
     int _nodeLineWidth = 3 * _diameter / 2;
+    int _fontSize=_radius;
 
     QPixmap *pold;
     QTimer timer;
