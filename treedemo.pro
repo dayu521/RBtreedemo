@@ -34,9 +34,7 @@ HEADERS += \
     treeshow.h
 
 FORMS += \
-        widget.ui \
-    form.ui \
-    form2.ui
+        widget.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

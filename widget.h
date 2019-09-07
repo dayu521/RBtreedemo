@@ -19,7 +19,6 @@ public:
     void showInfo(const QString _templeteString,const T & value);
 
 private slots:
-    void on__PushButtonStep1_clicked();
 
     void on__PushButtonInitial_clicked();
 
@@ -37,9 +36,13 @@ private slots:
 
     void on__PushButtonStep1_4_clicked();
 
-    void on_spinBox_2_editingFinished();
-
     void on_spinBox_2_valueChanged(int arg1);
+
+    void on_comboBox_activated(int index);
+
+    void on__SpinBoxForSpeed_valueChanged(int arg1);
+
+    void on__CheckBoxForShowDetail_stateChanged(int arg1);
 
 private:
     Ui::Widget *ui;
@@ -47,10 +50,14 @@ private:
     enum CC{INSERT,REMOVE};
     int _fuck=0;
     int _whichTabWidget=0;
-    QTimer _timer;
+    QTimer _timerCommon;
     QTimer _timerForDetail;
+    enum WitchTimer{Common,Detail};
+    WitchTimer _currentTimer=WitchTimer::Common;
     int ii=0;
     bool _taskRead=false;
+    bool _simulationStarted=false;
+    int _numberOfValueLeft=0;
 
 };
 

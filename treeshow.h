@@ -5,6 +5,7 @@
 #include <QPixmap>
 #include <QQueue>
 #include <QTimer>
+#include <initializer_list>
 
 class TreeShow : public QLabel {
     Q_OBJECT
@@ -23,9 +24,10 @@ public:
         ChangeColor,
         All,
         PaintBlack,
+        NextValue,
         Done
     };
-    bool taskOfInsert(int i);
+    void taskOfInsert(int i);
     void takePicture();
     void setIsClear(bool isClear) { _isClearForDraw = isClear; }
     void setPixMapTo(int diameter,int height);
@@ -33,46 +35,60 @@ public:
     int  getTreeNodeDiameter()const;
     int  getAllTreeNodeCount()const;
 
+    void prepareQPainter();
+
+
+
 signals:
     void setpix();
     void nextValueReady(int nextValue);
+    void noMorePicture();
+    void insertFinish(bool isSuccess);
 
 public slots:
     void drawPicture(int x, int operation);
     void clearPicture();
-    bool drawPicture();
+    void drawPicture();
     void clearPictureForDraw();
 
     // QWidget interface
 protected:
     virtual void paintEvent(QPaintEvent *event) override;
-
+    virtual void resizeEvent(QResizeEvent *event) override;
 private:
     template <typename T>
     class Node;
     struct NodeItem;
     void emptyView();
     void prepareBeforeDraw();
-    void fillPropertyInInsert(Node<int> *_nodeItem);
+//    void fillPropertyInInsert(Node<int> *_nodeItem);
     void setX(TreeShow::NodeItem *_nodeItem);
     void setY();
     void fillPropertyInInsert(NodeItem *_nodeItem);
-    void drawElement(QPainter &_painter, const Node<int> *_nodeItem);
-    void drawAllElement(QPainter &_painter, NodeItem *_nodeItem);
 
-    // for view-node
+
+    // operation for NodeItem-node
     struct Action;
-    void search(Action &action);
+    NodeItem * search(Action &action)const;
     void add(Action &action);
     void rotate(Action &action);
-    void changeColor(Action &action);
-    void paintBlack();
-    void done();
-    void drawChangedColor(NodeItem *root,QPainter & pp);
+    struct SomeNodeItem;
+    SomeNodeItem  changeColor(Action &action);
+    void paintRootBlack();
+    void showNextValue();
+    void done(Action &action);
+    //  drawing for NodeItem-node
+    void drawAllElement(QPainter &_painter, NodeItem *_nodeItem)const;
+    void drawAllElement()const;
+    void drawCurrentNodeItem(NodeItem * _nodeItem)const;
+    void paintColor(NodeItem *root,QPainter & pp,int dx=0)const;
+    template<typename T>
+    void recolorNodeItem(std::initializer_list<T> lists)const;
 
     void emptyRbtreeForDraw(NodeItem *&root);
 
-    void dispatchAction(Action &action);
+    void dispatchActionAndDraw(Action &action);
+    void insertOfNodeItem();
 
 private:
     QPixmap *pix;
@@ -107,10 +123,6 @@ private:
     int _xTranslationOffset=0;
     int _yTranslationOffset=0;
 
-    // QWidget interface
-protected:
-    virtual void resizeEvent(QResizeEvent *event) override;
-
     // rbtree
 private:
     enum Color { Red, Black };
@@ -140,7 +152,7 @@ private:
     };
     void RBtreeNodeInitial();
     void insert(Node<int> *&root, Node<int> *parent, int x);
-    bool insert2(int x);
+    void insert2(int x);
     void remove(Node<int> *&root, Node<int> *parent, int x);
     void rotationWithLeftChild(Node<int> *&root);
     void rotationWithLeftChildForDraw(NodeItem *&root);
@@ -164,22 +176,30 @@ private:
     struct Action {
         Operator _ope;
 
-    /* 1.增加节点
-     *  索引0:新节点值
-     *  索引1:父节点值
-     * 2.旋转
-     *  索引0:父节点值
-     *  索引1:值为0与左孩子旋转,值为1与右孩子旋转
-     * 3.变色
-     *  索引0:当前值,索引1:颜色
-     *  索引2:当前值,索引3:颜色
-     *  索引4:当前值,索引5:颜色
-     *  三个键值对组成
+
+    /* 1.增加节点( Add)
+     *      索引0:新节点值
+     *      索引1:父节点值
+     * 2.旋转(Rotate)
+     *      索引0:父节点值
+     *      索引1:值为0与左孩子旋转,值为1与右孩子旋转
+     * 3.变色(ChangeColor)
+     *      0是红色,值1是黑色.大于1表示不存在当前节点
+     *      索引0:当前节点值,索引1:当前节点值颜色
+     *      索引2:当前节点值,索引3:当前节点值颜色
+     *      索引4:当前节点值,索引5:当前节点值颜色
+     *      三个键值对组成
      * 4.删除过程中具有两个子节点的被删除节点最小节点被替换成右子树
-     *  0:要删除的节点
-     *  1:找到的最小节点
-     * 5.查找过程
-     *  索引0:当前节点值
+     *      0:要删除的节点
+     *      1:找到的最小节点
+     * 5.查找过程(Search)
+     *      索引0:当前节点值
+     * 6.下一个值(NextValue)
+     *      索引0值固定为0
+     * 7.插入或删除完成(Done)
+     *      索引0值:当成功时为1,失败时0
+     * 9.涂根节点为黑(PaintBlack)
+     *      索引0值固定为0
      */
         int array[6];
     };
@@ -201,6 +221,13 @@ private:
         NodeItem(int value, NodeItem *left = nullptr, NodeItem *right = nullptr,
                  NodeItem *parent = nullptr)
             : _value(value), _left(left), _right(right), _parent(parent) {}
+    };
+    struct SomeNodeItem{
+        NodeItem * a[3];
+//        operator std::initializer_list<NodeItem *>()
+//        {
+//            return {a[0],a[1],a[2]};
+//        }
     };
 };
 

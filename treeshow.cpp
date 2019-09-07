@@ -27,7 +27,6 @@ TreeShow::~TreeShow()
 
 void TreeShow::initial()
 {
-
     RBtreeNodeInitial();
 }
 
@@ -43,15 +42,14 @@ void TreeShow::takePicture()
     pp.end();
     auto x=_step-1;
     if(_arrayForOrder[x]._ope==Operator::Search)
-        search(_arrayForOrder[x]);
+        drawCurrentNodeItem(search(_arrayForOrder[x]));
     update();
 }
 
-bool TreeShow::taskOfInsert(int i)
+void TreeShow::taskOfInsert(int i)
 {
     _qvectorForData.append(i);
-     return insert2(i);
-
+    insert2(i);
 }
 
 void TreeShow::setPixMapTo(int diameter, int height)
@@ -84,46 +82,46 @@ int TreeShow::getAllTreeNodeCount() const
 
 void TreeShow::drawPicture(int x, int operation)
 {
-    if(operation==1)
-        return ;
-    insert(root,NIL,x); //此处的NIL也不可写为root.parent
-    //    insert2(x);
-    QPainter pp(pix);
-    pp.translate(0,_diameter/2);
-    pix->fill();
-    for(Node<int> * ppp=_sentinel->_next;ppp!=_sentinel;ppp=ppp->_next){
-        drawElement(pp,ppp);
+    if(_step>=_arrayForOrder.size()){
+        emit noMorePicture();
+        return  ;
     }
+    insertOfNodeItem();
+    drawAllElement();
     update();
 }
 
-bool TreeShow::drawPicture()
+void TreeShow::drawPicture()
 {
     if(_step>=_arrayForOrder.size()){
-        return  false;
+        emit noMorePicture();
+        return  ;
     }
     //    pix->fill();
-    dispatchAction(_arrayForOrder[_step]);
+    dispatchActionAndDraw(_arrayForOrder[_step]);
     update();
     _step++;
-    return true;
 }
 
 void TreeShow::clearPictureForDraw()
 {
-//    if(_isClearForDraw)
-//        return ;
+    if(_isClearForDraw)
+        return ;
     _sentinelForDraw->_prev=_sentinelForDraw->_next=_sentinelForDraw;
     emptyRBtree(root);
     root=NIL;
     emptyRbtreeForDraw(_rootForDraw);
     _rootForDraw=_NILForDraw;
+
     _hashForNodeItem.clear();
-    _arrayForOrder.clear();
-    _qvectorForData.clear();
     _hashForNodeItem.insert(_NILForDraw->_value,_NILForDraw);
+
+    _arrayForOrder.clear();
     _step=0;
+
+    _qvectorForData.clear();
     _indexForQvector=0;
+
     _xTranslationOffset=0;
     _yTranslationOffset=0;
     _nodeSize=0;
@@ -146,10 +144,7 @@ void TreeShow::paintEvent(QPaintEvent *event)
     if(_IsChangeWidgetSize)
         return;
     QPainter p(this);
-//    p.translate(_xTranslationOffset,_yTranslationOffset);
     p.drawPixmap(0,0,*pix);
-//    p.drawPixmap(0,0,pix->scaled(width(),height()));
-
 }
 
 void TreeShow::prepareBeforeDraw()
@@ -158,7 +153,7 @@ void TreeShow::prepareBeforeDraw()
     pix->fill();
 }
 
-void TreeShow::fillPropertyInInsert(Node<int> *_nodeItem)
+/* void TreeShow::fillPropertyInInsert(Node<int> *_nodeItem)
 {
     //insert value into linkedlist-ordered and update x coordinate
     Node<int> * _pCurrent=_sentinel->_prev;
@@ -195,7 +190,7 @@ void TreeShow::fillPropertyInInsert(Node<int> *_nodeItem)
         }
     }
 }
-
+*/
 void TreeShow::setX(TreeShow::NodeItem *_nodeItem)
 {
     NodeItem * _pCurrent=_sentinelForDraw->_prev;
@@ -244,23 +239,7 @@ void TreeShow::fillPropertyInInsert(TreeShow::NodeItem *_nodeItem)
     setY();
 }
 
-void TreeShow::drawElement(QPainter &_painter, const TreeShow::Node<int> *_nodeItem)
-{
-    //draw line
-    if(_nodeItem->xParent>0)
-        _painter.drawLine(_nodeItem->x*_diameter/2,_nodeItem->y*_nodeLineWidth,_nodeItem->xParent*_diameter/2,_nodeItem->yParent*_nodeLineWidth);
-    //draw cycle
-    QPainterPath myPath;
-    myPath.addEllipse(QPoint(_nodeItem->x*_diameter/2,_nodeItem->y*_nodeLineWidth),_radius,_radius);
-    _painter.drawPath(myPath);
-    _painter.fillPath(myPath,_nodeItem->color==0?Qt::red:Qt::black);
-    // draw text
-    _painter.setPen(Qt::white);
-    _painter.drawText(QRect(_nodeItem->x*_diameter/2-_radius,_nodeItem->y*_nodeLineWidth-_radius,_diameter,_diameter),Qt::AlignCenter,QString::number(_nodeItem->item));
-    _painter.setPen(Qt::black);
-}
-
-void TreeShow::drawAllElement(QPainter &_painter,  NodeItem *_nodeItem)
+void TreeShow::drawAllElement(QPainter &_painter,  NodeItem *_nodeItem)const
 {
     if(_nodeItem!=_NILForDraw){
         drawAllElement(_painter,_nodeItem->_left);
@@ -280,9 +259,19 @@ void TreeShow::drawAllElement(QPainter &_painter,  NodeItem *_nodeItem)
     }
 }
 
-void TreeShow::search(TreeShow::Action &action)
+void TreeShow::drawAllElement() const
 {
-    auto _nodeItem=_hashForNodeItem.value(action.array[0]);
+    pix->fill();
+    QPainter pp(pix);
+    pp.translate(0,_diameter/2);
+    QFont font = pp.font();
+    font.setPixelSize(_fontSize);
+    pp.setFont(font);
+    drawAllElement(pp,_rootForDraw);
+}
+
+void TreeShow::drawCurrentNodeItem(NodeItem *_nodeItem) const
+{
     pix->fill();
     QPainter pp(pix);
     pp.translate(0,_diameter/2);
@@ -300,6 +289,12 @@ void TreeShow::search(TreeShow::Action &action)
     pp.setPen(Qt::black);
 }
 
+TreeShow::NodeItem *TreeShow::search(TreeShow::Action &action) const
+{
+    auto _nodeItem=_hashForNodeItem.value(action.array[0]);
+    return _nodeItem;
+}
+
 void TreeShow::add(TreeShow::Action &action)
 {
     auto _parentNode=_hashForNodeItem.value(action.array[1]);
@@ -313,13 +308,6 @@ void TreeShow::add(TreeShow::Action &action)
         _parentNode->_right=_newNode;
 
     fillPropertyInInsert(_newNode);
-    pix->fill();
-    QPainter pp(pix);
-    pp.translate(0,_diameter/2);
-    QFont font = pp.font();
-    font.setPixelSize(_fontSize);
-    pp.setFont(font);
-    drawAllElement(pp,_rootForDraw);
 }
 
 void TreeShow::rotate(TreeShow::Action &action)
@@ -330,17 +318,9 @@ void TreeShow::rotate(TreeShow::Action &action)
     else
         rotationWithRightChildForDraw(getParentReferenceForDraw(_currentNodeItem));
     setY();
-    pix->fill();
-    QPainter pp(pix);
-//    pp.setWindow(0,0,width(),height());
-    pp.translate(0,_diameter/2);
-    QFont font = pp.font();
-    font.setPixelSize(_fontSize);
-    pp.setFont(font);
-    drawAllElement(pp,_rootForDraw);
 }
 
-void TreeShow::changeColor(TreeShow::Action &action)
+TreeShow::SomeNodeItem TreeShow::changeColor(TreeShow::Action &action)
 {
     auto node1=_hashForNodeItem.value(action.array[0]);
     node1->color=action.array[1]==0?Red:Black;
@@ -351,22 +331,26 @@ void TreeShow::changeColor(TreeShow::Action &action)
         node3=_hashForNodeItem.value(action.array[4]);
         node3->color=action.array[5]==0?Red:Black;
     }
+    return {node1,node2,node3};//必须返回不大于3个元素的数组
+}
+template<typename T>
+void TreeShow::recolorNodeItem(std::initializer_list<T> lists) const
+{
     QPainter pp(pix);
-//    pp.setWindow(0,0,width(),height());
     pp.translate(0,_diameter/2);
     QFont font = pp.font();
     font.setPixelSize(_fontSize);
     pp.setFont(font);
-    for(auto x:{node1,node2,node3})
-        drawChangedColor(x,pp);
+    for(auto x:lists)
+        paintColor(x,pp);
 }
 
-void TreeShow:: drawChangedColor(NodeItem * root,QPainter & pp)
+void TreeShow:: paintColor(NodeItem * root, QPainter & pp, int dx) const
 {
     if(root==nullptr)
         return;
     QPainterPath myPath;
-    myPath.addEllipse(QPoint(root->x*_diameter/2,root->y*_nodeLineWidth),_radius,_radius);
+    myPath.addEllipse(QPoint(root->x*_diameter/2,root->y*_nodeLineWidth),_radius+dx,_radius+dx);
     pp.drawPath(myPath);
     pp.fillPath(myPath,root->color==Red?Qt::red:Qt::black);
     pp.setPen(Qt::white);
@@ -374,22 +358,20 @@ void TreeShow:: drawChangedColor(NodeItem * root,QPainter & pp)
     pp.setPen(Qt::black);
 }
 
-void TreeShow::paintBlack()
+void TreeShow::paintRootBlack()
 {
     this->_rootForDraw->color=Black;
-    QPainter pp(pix);
-//    pp.setWindow(0,0,width(),height());
-    pp.translate(0,_diameter/2);
-    QFont font = pp.font();
-    font.setPixelSize(_fontSize);
-    pp.setFont(font);
-    drawChangedColor(this->_rootForDraw,pp);
 }
 
-void TreeShow::done()
+void TreeShow::showNextValue()
 {
     if(_qvectorForData.size()>_indexForQvector)
         emit nextValueReady(_qvectorForData[_indexForQvector++]);
+}
+
+void TreeShow::done(TreeShow::Action &action)
+{
+    emit insertFinish(action.array[0]==0?false:true);
 }
 
 void TreeShow::emptyRbtreeForDraw(NodeItem *&root)
@@ -403,29 +385,68 @@ void TreeShow::emptyRbtreeForDraw(NodeItem *&root)
     }
 }
 
-
-
-void TreeShow::dispatchAction(Action &action)
+void TreeShow::dispatchActionAndDraw(Action &action)
 {
     switch (action._ope) {
-    case Operator::Search:
-        search(action);
+    case Operator::Search:        
+        drawCurrentNodeItem(search(action));
         break;
     case Operator::Add:
         add(action);
+        drawAllElement();
         break;
     case Operator::Rotate:
         rotate(action);
+        drawAllElement();
         break;
-    case Operator::ChangeColor:
-        changeColor(action);
+    case Operator::ChangeColor:{
+            auto arrayof3=changeColor(action);
+            recolorNodeItem({arrayof3.a[0],arrayof3.a[1],arrayof3.a[2]});
+        }
         break;
     case Operator::PaintBlack:
-        paintBlack();
+        paintRootBlack();
+        recolorNodeItem({this->_rootForDraw});
+        break;
+    case Operator::NextValue:
+        showNextValue();
         break;
     case Operator::Done:
-        done();
+        done(action);
         break;
+    }
+}
+
+void TreeShow::insertOfNodeItem()
+{
+    auto _isDone=false;
+    while (!_isDone) {
+        auto action=_arrayForOrder[_step];
+        switch (action._ope) {
+            case Operator::Search:
+                search(action);
+                break;
+            case Operator::Add:
+                add(action);
+                break;
+            case Operator::Rotate:
+                rotate(action);
+                break;
+            case Operator::ChangeColor:
+                changeColor(action);
+                break;
+            case Operator::PaintBlack:
+                paintRootBlack();
+                break;
+            case Operator::NextValue:
+                showNextValue();
+                break;
+            case Operator::Done:
+                _isDone=true;
+                done(action);
+                break;
+        }
+        _step++;
     }
 }
 
@@ -466,7 +487,6 @@ void TreeShow::insert(Node<int> *&root, Node<int> *parent, int x) {
         auto tem=root;  //root is pointer Reference,we need a pointer value
         if (parent->color == Red)
             insertionFixUpOfDoubleRed(tem);
-        fillPropertyInInsert(tem);
     } else if (x < root->item)
         insert(root->left, root, x);
     else if (x > root->item)
@@ -475,9 +495,9 @@ void TreeShow::insert(Node<int> *&root, Node<int> *parent, int x) {
         ;	//重复
 }
 
-bool TreeShow::insert2(int x)
+void TreeShow::insert2(int x)
 {
-    _arrayForOrder.append({Operator::Done,{0}});
+    _arrayForOrder.append({Operator::NextValue,{0}});
     auto temp=root;
     //红黑树在调整时,其哨兵节点NIL的父节点在旋转过程中会改变,因此,在树进行一轮清空后,
     //此时root=NIL,即root.parent不再是NIL.所以这里不可以写成root->parent
@@ -496,8 +516,8 @@ bool TreeShow::insert2(int x)
             break;
     }
     if(temp!=NIL){
-//        _arrayForOrder.append({Operator::Done,{0}});
-        return false;
+        _arrayForOrder.append({Operator::Done,{0}});
+        return ;
     }
     auto newNode=new Node<int>(x,tempParent,NIL,NIL);
     _nodeSize++;
@@ -517,8 +537,7 @@ bool TreeShow::insert2(int x)
         _arrayForOrder.append({Operator::Add,{x,tempParent->item}});
     }
     insertionFixUpOfDoubleRed(newNode);
-//    _arrayForOrder.append({Operator::Done,{0}});
-    return true;
+    _arrayForOrder.append({Operator::Done,{1}});
 }
 
 void TreeShow::remove(Node<int> *&root, Node<int> *parent, int x) {
@@ -740,5 +759,7 @@ int TreeShow::findmin(const Node<int> *root) const {
     }
     return temp->item;
 }
+
+
 
 
