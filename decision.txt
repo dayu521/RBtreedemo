@@ -40,6 +40,7 @@ qradioButton放到排他QButtonGroup中
 //一个重要问题
 红黑树在调整时,其哨兵节点NIL的父节点在旋转过程中会改变,因此,在树进行一轮清空后,
 此时root=NIL,即root.parent不再是NIL.
+因此,任何时候把NIL作为root的父节点都不会错.
 
 
 模拟插入删除

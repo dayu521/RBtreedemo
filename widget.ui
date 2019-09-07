@@ -63,6 +63,26 @@
          </property>
         </spacer>
        </item>
+       <item>
+        <widget class="QLabel" name="label_4">
+         <property name="text">
+          <string>剩余节点</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLCDNumber" name="lcdNumber_2">
+         <property name="minimumSize">
+          <size>
+           <width>24</width>
+           <height>40</height>
+          </size>
+         </property>
+         <property name="intValue" stdset="0">
+          <number>0</number>
+         </property>
+        </widget>
+       </item>
       </layout>
      </item>
      <item>
@@ -115,6 +135,9 @@
          <property name="text">
           <string>跟踪过程</string>
          </property>
+         <property name="checked">
+          <bool>false</bool>
+         </property>
         </widget>
        </item>
        <item>
@@ -163,7 +186,7 @@
        <item>
         <widget class="QSpinBox" name="spinBox_2">
          <property name="minimum">
-          <number>20</number>
+          <number>10</number>
          </property>
          <property name="value">
           <number>40</number>
