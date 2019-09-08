@@ -34,8 +34,6 @@ private slots:
 
     void on_checkBox_stateChanged(int arg1);
 
-    void on__PushButtonStep1_4_clicked();
-
     void on_spinBox_2_valueChanged(int arg1);
 
     void on_comboBox_activated(int index);
@@ -43,6 +41,10 @@ private slots:
     void on__SpinBoxForSpeed_valueChanged(int arg1);
 
     void on__CheckBoxForShowDetail_stateChanged(int arg1);
+
+    void on__PushButtonNext_2_clicked();
+
+    void on__PushButtonStep1_3_clicked();
 
 private:
     Ui::Widget *ui;
@@ -59,6 +61,10 @@ private:
     bool _simulationStarted=false;
     int _numberOfValueLeft=0;
 
+
+    // QWidget interface
+protected:
+    virtual void showEvent(QShowEvent *event) override;
 };
 
 #endif // WIDGET_H

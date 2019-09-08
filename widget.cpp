@@ -21,7 +21,7 @@ Widget::Widget(QWidget *parent) : QWidget(parent), ui(new Ui::Widget) {
                                      .arg(ui->_TreeShow->height()));
     });
 
-    _timerCommon.setInterval(300);
+    _timerCommon.setInterval(200);
     connect(&_timerCommon, &QTimer::timeout,[=]() {
         ui->_TreeShow->drawPicture(0, _fuck);
     });
@@ -35,14 +35,18 @@ Widget::Widget(QWidget *parent) : QWidget(parent), ui(new Ui::Widget) {
     connect(ui->_TreeShow, &TreeShow::insertFinish, [=](bool a) {
         if(a)
             ui->lcdNumber_2->display(--_numberOfValueLeft);
+        else {
+            showInfo("重复!","");
+        }
     });
     connect(ui->_TreeShow,&TreeShow::noMorePicture,[=](){
         _timerForDetail.stop();
         _timerCommon.stop();
         showInfo("模拟完成", "");
+        ui->_PushButtonForTask->setDisabled(false);
     });
     std::srand(time(0));
-    ui->_SpinBoxForSpeed->setValue(_timerCommon.interval());
+    ui->_SpinBoxForSpeed->setValue(_timerCommon.interval());    
 }
 
 Widget::~Widget() { delete ui; }
@@ -73,8 +77,9 @@ void Widget::on_tabWidget_tabBarClicked(int index) {
 
 void Widget::on__PushButtonStart_clicked() {
     if (ui->_CheckBoxForShowDetail->isChecked()) {
-        if (_timerForDetail.isActive()) return;
-            _timerForDetail.start();
+        if (_timerForDetail.isActive())
+            return;
+        _timerForDetail.start();
         ui->_CheckBoxForShowDetail->setDisabled(true);
         _simulationStarted=true;
     } else {
@@ -95,8 +100,9 @@ void Widget::on__PushButtonStop_clicked() {
 }
 
 void Widget::on__PushButtonForTask_clicked() {
-    ui->_TreeShow->clearPictureForDraw();
+//    ui->_TreeShow->clearPictureForDraw();
     ui->_TreeShow->setIsClear(false);
+    auto currentNodeItemCount=ui->_TreeShow->getAllTreeNodeCount();
     auto _witchToChose=ui->comboBox->currentIndex();
     int _count = ui->spinBox->value();
     int _rangeLeft = ui->_RangeLeft->text().toInt();
@@ -110,12 +116,12 @@ void Widget::on__PushButtonForTask_clicked() {
         for (auto a = 0; a < _count; a++) {
             ui->_TreeShow->taskOfInsert(_rangeLeft + rand() % bb);
         }
-        showInfo("随机任务生成成功:共插入 %1 个节点",ui->_TreeShow->getAllTreeNodeCount());
+        showInfo("随机任务生成成功:插入 %1 个节点",ui->_TreeShow->getAllTreeNodeCount()-currentNodeItemCount);
     }else if(_witchToChose==1){     //从小到大
         for (auto a = _rangeLeft; a <= _rangeRight; a++) {
             ui->_TreeShow->taskOfInsert(a);
         }
-        showInfo("顺序任务生成成功:共插入 %1 个节点",ui->_TreeShow->getAllTreeNodeCount());
+        showInfo("顺序任务生成成功:插入 %1 个节点",ui->_TreeShow->getAllTreeNodeCount()-currentNodeItemCount);
     }else if(_witchToChose==2){     //自定义
         showInfo("暂未实现","");
         return ;
@@ -129,7 +135,20 @@ void Widget::on__PushButtonForTask_clicked() {
     _taskRead=true;
 }
 
-void Widget::on__PushButtonNext_clicked() { ui->_TreeShow->drawPicture(); }
+void Widget::on__PushButtonNext_clicked()
+{
+    auto x=ui->_LineEditForData->text().toInt();
+    ui->_TreeShow->taskOfRemove(x);
+    if(ui->_CheckBoxForShowDetail->isChecked()){
+        if (_timerForDetail.isActive())
+            return;
+        _timerForDetail.start();
+        ui->_CheckBoxForShowDetail->setDisabled(true);
+        _simulationStarted=true;
+    }else {
+        ui->_TreeShow->drawPicture(0,0);
+    }
+}
 
 void Widget::on_checkBox_stateChanged(int arg1)
 {
@@ -143,18 +162,12 @@ void Widget::on_checkBox_stateChanged(int arg1)
 
 }
 
-void Widget::on__PushButtonStep1_4_clicked()
-{
-//    ui->_TreeShow->setPixMapTo(0,0);
-
-}
-
 void Widget::on_spinBox_2_valueChanged(int arg1)
 {
     _timerForDetail.stop();
     ui->_TreeShow->setTreeNodeDiameter(arg1);
     if(_simulationStarted)
-        ui->_TreeShow->takePicture();
+        ui->_TreeShow->takeOnePicture();
     showInfo("当前可大约显示 %1 个节点",(ui->_TreeShow->width()/arg1-1)*2);
 }
 
@@ -188,4 +201,22 @@ void Widget::on__CheckBoxForShowDetail_stateChanged(int arg1)
         ui->_SpinBoxForSpeed->setValue(_timerForDetail.interval());
     else
         ui->_SpinBoxForSpeed->setValue(_timerCommon.interval());
+}
+
+void Widget::showEvent(QShowEvent *event)
+{
+    showInfo("当前可大约显示: %1 个节点",(ui->_TreeShow->width()/40-1)*2);
+    QWidget::showEvent(event);
+}
+
+void Widget::on__PushButtonNext_2_clicked()
+{
+    auto x=ui->_LineEditForData->text().toInt();
+    ui->_TreeShow->taskOfInsert(x);
+    ui->_TreeShow->drawPicture(0,0);
+}
+
+void Widget::on__PushButtonStep1_3_clicked()
+{
+    on__PushButtonInitial_clicked();
 }

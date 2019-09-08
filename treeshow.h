@@ -12,32 +12,15 @@ class TreeShow : public QLabel {
 public:
     explicit TreeShow(QWidget *parent = nullptr);
     ~TreeShow() override;
-    void initial();
-    void start() {}
 
 public:
-    enum Operator {
-        Search,
-        Add,
-        Remove,
-        Rotate,
-        ChangeColor,
-        All,
-        PaintBlack,
-        NextValue,
-        Done
-    };
     void taskOfInsert(int i);
-    void takePicture();
+    void taskOfRemove(int i);
+    void takeOnePicture();
     void setIsClear(bool isClear) { _isClearForDraw = isClear; }
-    void setPixMapTo(int diameter,int height);
     void setTreeNodeDiameter(int diameter);
     int  getTreeNodeDiameter()const;
     int  getAllTreeNodeCount()const;
-
-    void prepareQPainter();
-
-
 
 signals:
     void setpix();
@@ -47,7 +30,6 @@ signals:
 
 public slots:
     void drawPicture(int x, int operation);
-    void clearPicture();
     void drawPicture();
     void clearPictureForDraw();
 
@@ -56,27 +38,27 @@ protected:
     virtual void paintEvent(QPaintEvent *event) override;
     virtual void resizeEvent(QResizeEvent *event) override;
 private:
+    void initial();
+    void prepareBeforeDraw();
     template <typename T>
     class Node;
     struct NodeItem;
-    void emptyView();
-    void prepareBeforeDraw();
-//    void fillPropertyInInsert(Node<int> *_nodeItem);
-    void setX(TreeShow::NodeItem *_nodeItem);
+    void insertNodeItemIntoLinkedList(TreeShow::NodeItem *_nodeItem);
     void setY();
+    void deleteNodeItemFromLinkedList(NodeItem * _nodeItem);
     void fillPropertyInInsert(NodeItem *_nodeItem);
-
 
     // operation for NodeItem-node
     struct Action;
+    struct SomeNodeItem;
     NodeItem * search(Action &action)const;
     void add(Action &action);
     void rotate(Action &action);
-    struct SomeNodeItem;
     SomeNodeItem  changeColor(Action &action);
-    void paintRootBlack();
     void showNextValue();
+    void substitute(Action &action);
     void done(Action &action);
+
     //  drawing for NodeItem-node
     void drawAllElement(QPainter &_painter, NodeItem *_nodeItem)const;
     void drawAllElement()const;
@@ -85,10 +67,8 @@ private:
     template<typename T>
     void recolorNodeItem(std::initializer_list<T> lists)const;
 
-    void emptyRbtreeForDraw(NodeItem *&root);
-
     void dispatchActionAndDraw(Action &action);
-    void insertOfNodeItem();
+    void insertAndRemoveOfNodeItem();
 
 private:
     QPixmap *pix;
@@ -120,8 +100,6 @@ private:
     bool _isClearForDraw = false;
 
     int _nodeSize=0;
-    int _xTranslationOffset=0;
-    int _yTranslationOffset=0;
 
     // rbtree
 private:
@@ -153,53 +131,74 @@ private:
     void RBtreeNodeInitial();
     void insert(Node<int> *&root, Node<int> *parent, int x);
     void insert2(int x);
+
     void remove(Node<int> *&root, Node<int> *parent, int x);
+    void remove2(int x);
+
     void rotationWithLeftChild(Node<int> *&root);
-    void rotationWithLeftChildForDraw(NodeItem *&root);
+    void rotationWithLeftChildForNodeItem(NodeItem *&root);
+
     void rotationWithRightChild(Node<int> *&root);
-    void rotationWithRightChildForDraw(NodeItem *&root);
+    void rotationWithRightChildForNodeItem(NodeItem *&root);
+
+    void replace(Node<int> *y, Node<int> *x);
+    void replaceForNodeItem(NodeItem *y, NodeItem *x);
+
     void insertionFixUpOfDoubleRed(Node<int> *root);
     void removeFixUpOfLostOfBlack(Node<int> *root);
+
     void emptyRBtree(Node<int> *&root);
+    void emptyRbtreeForDraw(NodeItem *&root);
+
     Node<int> *&getParentReference(Node<int> *child) {
         if (child->parent == NIL) return this->root;
         return child == child->parent->left ? child->parent->left
                                             : child->parent->right;
     }
-    NodeItem *&getParentReferenceForDraw(NodeItem *child) {
+    NodeItem *&getParentReferenceForNodeItem(NodeItem *child) {
         if (child->_parent == _NILForDraw) return this->_rootForDraw;
         return child == child->_parent->_left ? child->_parent->_left
                                               : child->_parent->_right;
     }
     int findmin(const Node<int> *root) const;
+    Node<int> * findMinValueNode(const Node<int> * root);
+
+    enum Operator {
+        Search,
+        Add,
+        Rotate,
+        ChangeColor,
+        NextValue,
+        Substitute,
+        Done
+    };
 
     struct Action {
         Operator _ope;
-
-
-    /* 1.增加节点( Add)
+    /* 下面是规则的说明
+     * 1.增加节点( Add)
      *      索引0:新节点值
      *      索引1:父节点值
      * 2.旋转(Rotate)
      *      索引0:父节点值
      *      索引1:值为0与左孩子旋转,值为1与右孩子旋转
      * 3.变色(ChangeColor)
-     *      0是红色,值1是黑色.大于1表示不存在当前节点
+     *      0是红色,值1是黑色.索引5的值大于1表示不存在当前节点
      *      索引0:当前节点值,索引1:当前节点值颜色
      *      索引2:当前节点值,索引3:当前节点值颜色
      *      索引4:当前节点值,索引5:当前节点值颜色
      *      三个键值对组成
-     * 4.删除过程中具有两个子节点的被删除节点最小节点被替换成右子树
-     *      0:要删除的节点
-     *      1:找到的最小节点
-     * 5.查找过程(Search)
+     * 4.查找过程(Search)
      *      索引0:当前节点值
-     * 6.下一个值(NextValue)
+     * 5.下一个值(NextValue)
      *      索引0值固定为0
-     * 7.插入或删除完成(Done)
+     * 6.插入或删除完成(Done)
      *      索引0值:当成功时为1,失败时0
-     * 9.涂根节点为黑(PaintBlack)
-     *      索引0值固定为0
+     * 7.替换某个节点(Substitute),并且删除那个节点
+     *      索引0:被替换的节点,y
+     *      索引1:将要用来替换的新节点,x
+     *      索引2:被替换节点的原始节点,开始赋值的y
+     *  注意:这种方式的作用不好说清,是不是换一种麻烦的代码但可读性较高的算法呢?
      */
         int array[6];
     };

@@ -23,6 +23,8 @@ TreeShow::~TreeShow()
     delete pix;
     emptyRBtree(root);
     emptyRbtreeForDraw(_rootForDraw);
+    delete _sentinelForDraw;
+    delete _NILForDraw;
 }
 
 void TreeShow::initial()
@@ -30,7 +32,7 @@ void TreeShow::initial()
     RBtreeNodeInitial();
 }
 
-void TreeShow::takePicture()
+void TreeShow::takeOnePicture()
 {
     QPainter pp(pix);
     pix->fill();
@@ -52,14 +54,9 @@ void TreeShow::taskOfInsert(int i)
     insert2(i);
 }
 
-void TreeShow::setPixMapTo(int diameter, int height)
+void TreeShow::taskOfRemove(int i)
 {
-    auto pold=pix;
-//    int factor=this->width()/this->height();
-    pix=new QPixmap(this->width(),this->height());
-    pix->fill();
-    delete  pold;
-    update();
+    remove2(i);
 }
 
 void TreeShow::setTreeNodeDiameter(int diameter)
@@ -86,7 +83,7 @@ void TreeShow::drawPicture(int x, int operation)
         emit noMorePicture();
         return  ;
     }
-    insertOfNodeItem();
+    insertAndRemoveOfNodeItem();
     drawAllElement();
     update();
 }
@@ -97,7 +94,6 @@ void TreeShow::drawPicture()
         emit noMorePicture();
         return  ;
     }
-    //    pix->fill();
     dispatchActionAndDraw(_arrayForOrder[_step]);
     update();
     _step++;
@@ -122,25 +118,15 @@ void TreeShow::clearPictureForDraw()
     _qvectorForData.clear();
     _indexForQvector=0;
 
-    _xTranslationOffset=0;
-    _yTranslationOffset=0;
     _nodeSize=0;
     pix->fill();
     _isClearForDraw=true;
     update();
 }
 
-void TreeShow::clearPicture()
-{
-    _sentinel->_prev=_sentinel->_next=_sentinel;
-    emptyRBtree(root);
-    root=NIL;
-    pix->fill();
-    update();
-}
-
 void TreeShow::paintEvent(QPaintEvent *event)
 {
+    //防抖处理
     if(_IsChangeWidgetSize)
         return;
     QPainter p(this);
@@ -153,45 +139,7 @@ void TreeShow::prepareBeforeDraw()
     pix->fill();
 }
 
-/* void TreeShow::fillPropertyInInsert(Node<int> *_nodeItem)
-{
-    //insert value into linkedlist-ordered and update x coordinate
-    Node<int> * _pCurrent=_sentinel->_prev;
-    while (_pCurrent!=_sentinel&&_nodeItem->item<_pCurrent->item) {
-        _pCurrent->x++;
-        _pCurrent=_pCurrent->_prev;
-    }
-    _nodeItem->x=_pCurrent->x+1;
-    _nodeItem->_next=_pCurrent->_next;
-    _pCurrent->_next->_prev=_nodeItem;
-    _nodeItem->_prev=_pCurrent;
-    _pCurrent->_next=_nodeItem;
-    //set correct infomation without x by levelorder
-    Node<int> * temp=nullptr;
-    root->color=Black;
-    _sentinel->y=-1;
-    NIL->y=-1;
-    _queueForNode.enqueue(root);
-    int level=0;
-    int column=_queueForNode.size();
-    while (_queueForNode.size()>0) {
-        temp=_queueForNode.dequeue();
-        column--;
-        temp->y=level;
-        temp->xParent=temp->parent->x;
-        temp->yParent=temp->parent->y;
-        if(temp->left!=NIL)
-            _queueForNode.enqueue(temp->left);
-        if(temp->right!=NIL)
-            _queueForNode.enqueue(temp->right);
-        if(column==0){
-            level++;
-            column=_queueForNode.size();
-        }
-    }
-}
-*/
-void TreeShow::setX(TreeShow::NodeItem *_nodeItem)
+void TreeShow::insertNodeItemIntoLinkedList(TreeShow::NodeItem *_nodeItem)
 {
     NodeItem * _pCurrent=_sentinelForDraw->_prev;
     while (_pCurrent!=_sentinelForDraw&&_nodeItem->_value<_pCurrent->_value) {
@@ -231,10 +179,24 @@ void TreeShow::setY()
     }
 }
 
+void TreeShow::deleteNodeItemFromLinkedList(TreeShow::NodeItem *_nodeItem)
+{
+    if(_nodeItem==_NILForDraw)
+        return ;
+    auto brokenPoint=_nodeItem->_prev;
+    brokenPoint->_next=_nodeItem->_next;
+    _nodeItem->_next->_prev=brokenPoint;
+    brokenPoint=brokenPoint->_next;
+    while(brokenPoint!=_sentinelForDraw){
+        brokenPoint->x--;
+        brokenPoint=brokenPoint->_next;
+    }
+}
+
 void TreeShow::fillPropertyInInsert(TreeShow::NodeItem *_nodeItem)
 {
     //insert value into linkedlist-ordered and update x coordinate
-    setX(_nodeItem);
+    insertNodeItemIntoLinkedList(_nodeItem);
     //set right infomation left without x by level-order
     setY();
 }
@@ -314,25 +276,27 @@ void TreeShow::rotate(TreeShow::Action &action)
 {
     auto _currentNodeItem=_hashForNodeItem.value(action.array[0]);
     if(action.array[1]==0)
-        rotationWithLeftChildForDraw(getParentReferenceForDraw(_currentNodeItem));
+        rotationWithLeftChildForNodeItem(getParentReferenceForNodeItem(_currentNodeItem));
     else
-        rotationWithRightChildForDraw(getParentReferenceForDraw(_currentNodeItem));
+        rotationWithRightChildForNodeItem(getParentReferenceForNodeItem(_currentNodeItem));
     setY();
 }
 
 TreeShow::SomeNodeItem TreeShow::changeColor(TreeShow::Action &action)
 {
-    auto node1=_hashForNodeItem.value(action.array[0]);
-    node1->color=action.array[1]==0?Red:Black;
-    auto node2=_hashForNodeItem.value(action.array[2]);
-    node2->color=action.array[3]==0?Red:Black;
-    NodeItem * node3=nullptr;
-    if(!(action.array[5]>1)){
-        node3=_hashForNodeItem.value(action.array[4]);
-        node3->color=action.array[5]==0?Red:Black;
+    int i=0;
+    SomeNodeItem forReturn;
+    while(i<3){
+        auto colorValue=action.array[2*i+1];
+        if(colorValue>1)
+            break;
+        forReturn.a[i]=_hashForNodeItem.value(action.array[2*i]);
+        forReturn.a[i]->color=colorValue==0?Red:Black;
+        i++;
     }
-    return {node1,node2,node3};//必须返回不大于3个元素的数组
+    return forReturn;
 }
+
 template<typename T>
 void TreeShow::recolorNodeItem(std::initializer_list<T> lists) const
 {
@@ -358,15 +322,33 @@ void TreeShow:: paintColor(NodeItem * root, QPainter & pp, int dx) const
     pp.setPen(Qt::black);
 }
 
-void TreeShow::paintRootBlack()
-{
-    this->_rootForDraw->color=Black;
-}
-
 void TreeShow::showNextValue()
 {
     if(_qvectorForData.size()>_indexForQvector)
         emit nextValueReady(_qvectorForData[_indexForQvector++]);
+}
+
+void TreeShow::substitute(TreeShow::Action &action)
+{
+    auto y=_hashForNodeItem.value(action.array[0]);
+    deleteNodeItemFromLinkedList(y);
+    _hashForNodeItem.remove(y->_value);
+    auto x=_hashForNodeItem.value(action.array[1]);
+    if(action.array[0]!=action.array[2]){
+        auto yOriginal=_hashForNodeItem.value(action.array[2]);
+        _hashForNodeItem.remove(yOriginal->_value);
+        yOriginal->_value=y->_value;
+        _hashForNodeItem.insert(y->_value,yOriginal);
+    }
+    if(y==_rootForDraw)
+        _rootForDraw=x;
+    else if(y==y->_parent->_left)
+        y->_parent->_left=x;
+    else
+        y->_parent->_right=x;
+    x->_parent=y->_parent;
+    setY();
+    delete y;
 }
 
 void TreeShow::done(TreeShow::Action &action)
@@ -399,14 +381,14 @@ void TreeShow::dispatchActionAndDraw(Action &action)
         rotate(action);
         drawAllElement();
         break;
+    case Operator::Substitute:
+        substitute(action);
+        drawAllElement();
+        break;
     case Operator::ChangeColor:{
             auto arrayof3=changeColor(action);
             recolorNodeItem({arrayof3.a[0],arrayof3.a[1],arrayof3.a[2]});
         }
-        break;
-    case Operator::PaintBlack:
-        paintRootBlack();
-        recolorNodeItem({this->_rootForDraw});
         break;
     case Operator::NextValue:
         showNextValue();
@@ -417,7 +399,7 @@ void TreeShow::dispatchActionAndDraw(Action &action)
     }
 }
 
-void TreeShow::insertOfNodeItem()
+void TreeShow::insertAndRemoveOfNodeItem()
 {
     auto _isDone=false;
     while (!_isDone) {
@@ -432,11 +414,11 @@ void TreeShow::insertOfNodeItem()
             case Operator::Rotate:
                 rotate(action);
                 break;
+            case Operator::Substitute:
+                substitute(action);
+                break;
             case Operator::ChangeColor:
                 changeColor(action);
-                break;
-            case Operator::PaintBlack:
-                paintRootBlack();
                 break;
             case Operator::NextValue:
                 showNextValue();
@@ -449,8 +431,6 @@ void TreeShow::insertOfNodeItem()
         _step++;
     }
 }
-
-
 
 void TreeShow::resizeEvent(QResizeEvent *event)
 {
@@ -469,7 +449,6 @@ void TreeShow::RBtreeNodeInitial()
     NIL->color=Black;
     NIL->parent=NIL->left=NIL->right=NIL;
 
-
     _sentinelForDraw=new NodeItem(-9999);
     _sentinelForDraw->_prev=_sentinelForDraw->_next=_sentinelForDraw;
 
@@ -481,6 +460,7 @@ void TreeShow::RBtreeNodeInitial()
 
 }
 
+//之前单独实现红黑树时使用递归实现的插入,觉得不太好,重新用循环另外写了一个.它在这里无用
 void TreeShow::insert(Node<int> *&root, Node<int> *parent, int x) {
     if (root == NIL) {
         root = new Node<int>(x, parent, NIL, NIL);
@@ -495,6 +475,7 @@ void TreeShow::insert(Node<int> *&root, Node<int> *parent, int x) {
         ;	//重复
 }
 
+//有关插入操作指令序列的核心
 void TreeShow::insert2(int x)
 {
     _arrayForOrder.append({Operator::NextValue,{0}});
@@ -502,7 +483,6 @@ void TreeShow::insert2(int x)
     //红黑树在调整时,其哨兵节点NIL的父节点在旋转过程中会改变,因此,在树进行一轮清空后,
     //此时root=NIL,即root.parent不再是NIL.所以这里不可以写成root->parent
     auto tempParent=NIL;
-
     while (temp!=NIL) {
         tempParent=temp;
         _arrayForOrder.append({Operator::Search,{temp->item}});  //Search
@@ -528,11 +508,9 @@ void TreeShow::insert2(int x)
     else {
         if(x<tempParent->item){
             tempParent->left=newNode;
-
         }
         else{
             tempParent->right=newNode;
-
         }
         _arrayForOrder.append({Operator::Add,{x,tempParent->item}});
     }
@@ -540,6 +518,7 @@ void TreeShow::insert2(int x)
     _arrayForOrder.append({Operator::Done,{1}});
 }
 
+//这个函数和insert函数一样的,没用
 void TreeShow::remove(Node<int> *&root, Node<int> *parent, int x) {
     if (root == NIL)
         return;
@@ -568,6 +547,72 @@ void TreeShow::remove(Node<int> *&root, Node<int> *parent, int x) {
     }
 }
 
+void TreeShow::replace(Node<int> * y,Node<int> * x)
+{
+    if(y==root)
+        root=x;
+    else if(y==y->parent->left)
+        y->parent->left=x;
+    else
+        y->parent->right=x;
+    x->parent=y->parent;
+}
+
+//有关删除指令序列的核心
+void TreeShow::remove2(int v)
+{
+    auto temp=root;
+    while (temp!=NIL) {
+        _arrayForOrder.append({Operator::Search,{temp->item}});  //Search
+        if(temp->item>v){
+            temp=temp->left;
+        }
+        else if(temp->item<v){
+            temp=temp->right;
+        }
+        else
+            break;
+    }
+    if(temp==NIL){
+        _arrayForOrder.append({Operator::Done,{0}});
+        return ;
+    }
+    auto y=temp;
+    auto temp1=v;
+    auto yOriginalColor=y->color;
+    Node<int> * x=nullptr;
+    if(temp->left==NIL){
+        x=temp->right;
+        replace(y,x);
+
+    }else if(temp->right==NIL){
+        x=temp->left;
+        replace(y,y->left);
+    }else{
+        auto minNode=findMinValueNode(temp->right);
+        //这里使用一种简单的方式,保留源节点,仅仅替换值的方式间接删除找到的节点
+        y->item=minNode->item;
+        y=minNode;
+        x=y->right;
+        yOriginalColor=y->color;
+        if(y->parent==temp)
+            x->parent=y;//算法导论中这几行没看明白,暂时把形式保存在这里好了.
+        //喔,调试源码偶然发现了,这一步当x为哨兵节点是很重要,因为哨兵节点也参与之后调整过程
+        //向上回溯时,需要赋值root=root.parent.哨兵节点父节点每次都会变化,所以这里必须强制更新
+        //这里虽然采用删除方式不同,但还是保留了算法导论中的结构
+        else {
+            ;
+        }
+        replace(y,y->right);
+    }
+    _arrayForOrder.append({Operator::Substitute,{y->item,x->item,temp1}});
+    delete y;
+    y=nullptr;
+    if(yOriginalColor==Black)
+        removeFixUpOfLostOfBlack(x);
+    _arrayForOrder.append({Operator::Done,{1}});
+}
+
 void TreeShow::rotationWithLeftChild(Node<int> *&root) {
     Node<int> *left_child = root->left;
 
@@ -581,7 +626,7 @@ void TreeShow::rotationWithLeftChild(Node<int> *&root) {
     root = left_child;
 }
 
-void TreeShow::rotationWithLeftChildForDraw(TreeShow::NodeItem *&root)
+void TreeShow::rotationWithLeftChildForNodeItem(TreeShow::NodeItem *&root)
 {
     NodeItem *left_child = root->_left;
 
@@ -608,7 +653,7 @@ void TreeShow::rotationWithRightChild(Node<int> *&root) {
     root = right_child;
 }
 
-void TreeShow::rotationWithRightChildForDraw(TreeShow::NodeItem *&root)
+void TreeShow::rotationWithRightChildForNodeItem(TreeShow::NodeItem *&root)
 {
     auto right_child = root->_right;
 
@@ -622,6 +667,7 @@ void TreeShow::rotationWithRightChildForDraw(TreeShow::NodeItem *&root)
     root = right_child;
 }
 
+//把每步插入修复过程转化成一个操作序列的核心步骤
 void TreeShow::insertionFixUpOfDoubleRed(Node<int> *root) {
     while (root->parent->color == Red) {
         if (root->parent == root->parent->parent->left) {
@@ -675,10 +721,10 @@ void TreeShow::insertionFixUpOfDoubleRed(Node<int> *root) {
         }
     }
     this->root->color = Black;
-    _arrayForOrder.append({PaintBlack,{0}});
+    _arrayForOrder.append({Operator::ChangeColor,{this->root->item,1,-1,2,-1,2}});
 }
 
-
+//同样是删除修复的核心步骤
 void TreeShow::removeFixUpOfLostOfBlack(Node<int> *root) {
     while (root->color == Black && root != this->root) {
         Node<int> *root_brother = nullptr;
@@ -686,59 +732,79 @@ void TreeShow::removeFixUpOfLostOfBlack(Node<int> *root) {
             root_brother = root->parent->right;
             if (root_brother->color == Red) {	//case 1
                 Node<int> *&gp = getParentReference(root->parent);
+                _arrayForOrder.append({Operator::Rotate,{gp->item,1}});
                 rotationWithRightChild(gp);
                 gp->color = Black;
                 gp->left->color = Red;
                 root_brother = root->parent->right;
+                _arrayForOrder.append({Operator::ChangeColor,{gp->item,1,gp->left->item,0,-1,2}});
             }
             if (root_brother->left->color == Black
                     && root_brother->right->color == Black) {	//case 2
-                root->color = Red;
                 root_brother->color = Red;
+                _arrayForOrder.append({Operator::ChangeColor,{root_brother->item,0,-1,2,-1,2}});
                 root = root->parent;
+//                _arrayForOrder.append({Operator::Search,{root->item}});
             } else {
-                Node<int> *&root_parent = root->parent;
-                if (root_brother->left->color == Red) {	//case 3
-                    rotationWithLeftChild(getParentReference(root_brother));
+                Node<int> * &root_parent = getParentReference(root->parent);
+                if (root_brother->right->color == Black) {	//case 3
+                    _arrayForOrder.append({Operator::Rotate,{root_brother->item,0}});
+                    rotationWithLeftChild(root_parent->right);
                     root_parent->right->color = Black;
                     root_parent->right->right->color = Red;
+                    root_brother=root_parent->right;
+                    _arrayForOrder.append({Operator::ChangeColor,{root_parent->right->item,1,root_parent->right->right->item,0,-1,2}});
                 }
+                _arrayForOrder.append({Operator::Rotate,{root_parent->item,1}});
                 rotationWithRightChild(root_parent);	//case 4
                 root_parent->color = root_parent->left->color;
                 root_parent->left->color = Black;
                 root_parent->right->color = Black;
+                //利用枚举默认值也是和我们的规定值相等,否则下面要判断
+                _arrayForOrder.append({Operator::ChangeColor,{root_parent->item,root_parent->color,root_parent->left->item,1,root_parent->right->item,1}});
                 root = this->root;
+//                _arrayForOrder.append({Operator::Search,{root->item}});
             }
         } else {
             root_brother = root->parent->left;
             if (root_brother->color == Red) {	//case 1
                 Node<int> *&gp = getParentReference(root->parent);
+                _arrayForOrder.append({Operator::Rotate,{gp->item,0}});
                 rotationWithLeftChild(gp);
                 gp->color = Black;
                 gp->right->color = Red;
                 root_brother = root->parent->left;
+                _arrayForOrder.append({Operator::ChangeColor,{gp->item,1,gp->right->item,0,-1,2}});
             }
             if (root_brother->left->color == Black
                     && root_brother->right->color == Black) {	//case 2
-                root->color = Red;
                 root_brother->color = Red;
+                _arrayForOrder.append({Operator::ChangeColor,{root_brother->item,0,-1,2,-1,2}});
                 root = root->parent;
+//                _arrayForOrder.append({Operator::Search,{root->item}});
             } else {
-                Node<int> *&root_parent = root->parent;
-                if (root_brother->right->color == Red) {	//case 3
-                    rotationWithRightChild(getParentReference(root_brother));
+                Node<int> * &root_parent = getParentReference(root->parent);
+                if (root_brother->left->color == Black) {	//case 3
+                    _arrayForOrder.append({Operator::Rotate,{getParentReference(root_brother)->item,1}});
+                    rotationWithRightChild(root_parent->left);
                     root_parent->left->color = Black;
                     root_parent->left->left->color = Red;
+                    _arrayForOrder.append({Operator::ChangeColor,{root_parent->left->item,1,root_parent->left->left->item,0,-1,2}});
                 }
+                _arrayForOrder.append({Operator::Rotate,{root_parent->item,0}});
                 rotationWithLeftChild(root_parent);	//case 4
                 root_parent->color = root_parent->right->color;
                 root_parent->left->color = Black;
                 root_parent->right->color = Black;
+                _arrayForOrder.append({Operator::ChangeColor,{root_parent->item,root_parent->color,root_parent->left->item,1,root_parent->right->item,1}});
                 root = this->root;
+//                _arrayForOrder.append({Operator::Search,{root->item}});
             }
         }
     }
     root->color = Black;
+    _arrayForOrder.append({Operator::Search,{root->item}});
+    _arrayForOrder.append({Operator::ChangeColor,{root->item,1,-1,2,-1,2}});
 }
 
 void TreeShow::emptyRBtree(Node<int> *&root)
@@ -760,6 +826,12 @@ int TreeShow::findmin(const Node<int> *root) const {
     return temp->item;
 }
 
-
-
-
+TreeShow::Node<int> *TreeShow::findMinValueNode(const Node<int> *root)
+{
+    auto temp=root;
+    while (temp->left!=NIL) {
+        _arrayForOrder.append({Operator::Search,{temp->item}});
+        temp=temp->left;
+    }
+    return const_cast<Node<int> *>(temp);
+}
