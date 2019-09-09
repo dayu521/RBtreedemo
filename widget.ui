@@ -250,88 +250,6 @@
         <layout class="QHBoxLayout" name="horizontalLayout_4">
          <item>
           <widget class="QWidget" name="widget_2" native="true">
-           <widget class="QLineEdit" name="_LineEditForData">
-            <property name="geometry">
-             <rect>
-              <x>22</x>
-              <y>12</y>
-              <width>118</width>
-              <height>32</height>
-             </rect>
-            </property>
-            <property name="placeholderText">
-             <string>输入少量数据 使用空格分隔</string>
-            </property>
-           </widget>
-           <widget class="QPushButton" name="_PushButtonNext_2">
-            <property name="geometry">
-             <rect>
-              <x>20</x>
-              <y>50</y>
-              <width>70</width>
-              <height>34</height>
-             </rect>
-            </property>
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="maximumSize">
-             <size>
-              <width>70</width>
-              <height>16777215</height>
-             </size>
-            </property>
-            <property name="text">
-             <string>插入</string>
-            </property>
-           </widget>
-           <widget class="QPushButton" name="_PushButtonNext">
-            <property name="geometry">
-             <rect>
-              <x>113</x>
-              <y>50</y>
-              <width>70</width>
-              <height>34</height>
-             </rect>
-            </property>
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="maximumSize">
-             <size>
-              <width>70</width>
-              <height>16777215</height>
-             </size>
-            </property>
-            <property name="text">
-             <string>删除</string>
-            </property>
-           </widget>
-           <widget class="QPushButton" name="_PushButtonStep1_3">
-            <property name="geometry">
-             <rect>
-              <x>208</x>
-              <y>50</y>
-              <width>70</width>
-              <height>34</height>
-             </rect>
-            </property>
-            <property name="maximumSize">
-             <size>
-              <width>70</width>
-              <height>16777215</height>
-             </size>
-            </property>
-            <property name="text">
-             <string>初始化</string>
-            </property>
-           </widget>
            <widget class="QCheckBox" name="checkBox">
             <property name="geometry">
              <rect>
@@ -354,7 +272,7 @@
              <bool>true</bool>
             </property>
            </widget>
-           <widget class="QPushButton" name="_PushButtonStep1">
+           <widget class="QPushButton" name="_prevStepButton">
             <property name="geometry">
              <rect>
               <x>22</x>
@@ -373,7 +291,7 @@
              <string>前一步</string>
             </property>
            </widget>
-           <widget class="QPushButton" name="_PushButtonStep1_2">
+           <widget class="QPushButton" name="_nextStepButton">
             <property name="geometry">
              <rect>
               <x>113</x>
@@ -391,6 +309,117 @@
             <property name="text">
              <string>下一步</string>
             </property>
+           </widget>
+           <widget class="QWidget" name="widget_3" native="true">
+            <property name="geometry">
+             <rect>
+              <x>0</x>
+              <y>10</y>
+              <width>291</width>
+              <height>80</height>
+             </rect>
+            </property>
+            <widget class="QPushButton" name="_stopButton2">
+             <property name="geometry">
+              <rect>
+               <x>220</x>
+               <y>40</y>
+               <width>70</width>
+               <height>34</height>
+              </rect>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>70</width>
+               <height>16777215</height>
+              </size>
+             </property>
+             <property name="text">
+              <string>暂停</string>
+             </property>
+            </widget>
+            <widget class="QPushButton" name="_initialButton">
+             <property name="geometry">
+              <rect>
+               <x>150</x>
+               <y>40</y>
+               <width>70</width>
+               <height>34</height>
+              </rect>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>70</width>
+               <height>16777215</height>
+              </size>
+             </property>
+             <property name="text">
+              <string>初始化</string>
+             </property>
+            </widget>
+            <widget class="QPushButton" name="_deleteButton">
+             <property name="geometry">
+              <rect>
+               <x>80</x>
+               <y>40</y>
+               <width>70</width>
+               <height>34</height>
+              </rect>
+             </property>
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>70</width>
+               <height>16777215</height>
+              </size>
+             </property>
+             <property name="text">
+              <string>删除</string>
+             </property>
+            </widget>
+            <widget class="QPushButton" name="_insertButton">
+             <property name="geometry">
+              <rect>
+               <x>10</x>
+               <y>40</y>
+               <width>70</width>
+               <height>34</height>
+              </rect>
+             </property>
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>70</width>
+               <height>16777215</height>
+              </size>
+             </property>
+             <property name="text">
+              <string>插入</string>
+             </property>
+            </widget>
+            <widget class="QLineEdit" name="_LineEditForData">
+             <property name="geometry">
+              <rect>
+               <x>10</x>
+               <y>0</y>
+               <width>118</width>
+               <height>32</height>
+              </rect>
+             </property>
+             <property name="placeholderText">
+              <string>输入少量数据 使用空格分隔</string>
+             </property>
+            </widget>
            </widget>
           </widget>
          </item>
@@ -528,7 +557,7 @@
              </widget>
             </item>
             <item row="2" column="2" colspan="2">
-             <widget class="QPushButton" name="_PushButtonInitial">
+             <widget class="QPushButton" name="_InitialTreeButton">
               <property name="maximumSize">
                <size>
                 <width>70</width>

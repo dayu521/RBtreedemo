@@ -20,7 +20,7 @@ public:
 
 private slots:
 
-    void on__PushButtonInitial_clicked();
+    void on__InitialTreeButton_clicked();
 
     void on_tabWidget_tabBarClicked(int index);
 
@@ -30,7 +30,7 @@ private slots:
 
     void on__PushButtonForTask_clicked();
 
-    void on__PushButtonNext_clicked();
+    void on__deleteButton_clicked();
 
     void on_checkBox_stateChanged(int arg1);
 
@@ -42,9 +42,18 @@ private slots:
 
     void on__CheckBoxForShowDetail_stateChanged(int arg1);
 
-    void on__PushButtonNext_2_clicked();
+    void on__insertButton_clicked();
 
-    void on__PushButtonStep1_3_clicked();
+    void on__initialButton_clicked();
+
+
+    void on__stopButton2_clicked();
+
+    void on__prevStepButton_clicked();
+
+    void on__nextStepButton_clicked();
+
+    void on_comboBox_currentIndexChanged(int index);
 
 private:
     Ui::Widget *ui;

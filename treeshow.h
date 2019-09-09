@@ -21,6 +21,7 @@ public:
     void setTreeNodeDiameter(int diameter);
     int  getTreeNodeDiameter()const;
     int  getAllTreeNodeCount()const;
+    int  getCurrentStep()const{ return _step;}
 
 signals:
     void setpix();
@@ -51,7 +52,7 @@ private:
     // operation for NodeItem-node
     struct Action;
     struct SomeNodeItem;
-    NodeItem * search(Action &action)const;
+    NodeItem * search(Action &action);
     void add(Action &action);
     void rotate(Action &action);
     SomeNodeItem  changeColor(Action &action);
@@ -72,34 +73,36 @@ private:
 
 private:
     QPixmap *pix;
+
     int _pixWidth = 2000;
     int _pixHeight = 1000;
-    int _CycleRadiusMax = 20;
-    int _diameter = _pixWidth/50;
-    int _radius = _diameter / 2;
-    int _nodeLineWidth = 3 * _diameter / 2;
-    int _fontSize=_radius;
+    int _diameter = _pixWidth/50;   //节点直径
+    int _radius = _diameter / 2;    //半径
+    int _nodeLineHeight = 3 * _diameter / 2;     //垂直距离
+    int _fontSize=_radius;      //字体大小
 
-    QPixmap *pold;
     QTimer timer;
-    bool _IsChangeWidgetSize = false;
+    bool _IsChangeWidgetSize = false;       //防抖操作,减少重置大小事件造成的多次绘图
 
-    QVector<int> _qvectorForData;
-    int _indexForQvector=0;
-    Node<int> *root;
-    NodeItem *_rootForDraw;
-    Node<int> *NIL;
-    NodeItem *_NILForDraw;
-    Node<int> *_sentinel;
-    NodeItem *_sentinelForDraw;
-    QQueue<Node<int> *> _queueForNode;
-    QQueue<NodeItem *> _queueForDraw;
-    QVector<Action> _arrayForOrder;
-    QHash<int, NodeItem *> _hashForNodeItem;
-    int _step = 0;
-    bool _isClearForDraw = false;
+    QVector<int> _qvectorForData;       //插入节点值保留的副本
+    int _indexForQvector=0;     //以上副本的索引
 
+    Node<int> *root;        //红黑树根节点
+    NodeItem *_rootForDraw;     //绘图红黑树的根节点
+    Node<int> *NIL;     //原始红黑树的哨兵节点
+    NodeItem *_NILForDraw;     //为绘图而生成的红黑树的哨兵节点
+    NodeItem *_sentinelForDraw;     //有绘图节点形成的序链接链表的哨兵节点
+
+    QQueue<NodeItem *> _queueForDraw;       //用来进行层序遍历,然后设置每个绘图节点的y轴坐标
+    QVector<Action> _arrayForOrder;     //保存的一系列操作
+    QHash<int, NodeItem *> _hashForNodeItem;    //持有绘图树节点
+    int _step = 0;      //当前进行到哪个操作了
+    bool _isClearForDraw = false;       //是否已经清除
+
+    //树节点数量
     int _nodeSize=0;
+
+    NodeItem * _searchNodeItem=nullptr;
 
     // rbtree
 private:
