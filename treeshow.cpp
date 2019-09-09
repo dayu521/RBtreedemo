@@ -18,7 +18,6 @@ TreeShow::TreeShow(QWidget *parent):QLabel (parent)
 
 TreeShow::~TreeShow()
 {
-    delete _sentinel;
     delete NIL;
     delete pix;
     emptyRBtree(root);
@@ -64,7 +63,7 @@ void TreeShow::setTreeNodeDiameter(int diameter)
     _diameter=diameter;
     _radius=_diameter/2;
     _fontSize=_radius;
-    _nodeLineWidth = 4 * _radius;
+    _nodeLineHeight = 4 * _radius;
 }
 
 int TreeShow::getTreeNodeDiameter() const
@@ -208,15 +207,15 @@ void TreeShow::drawAllElement(QPainter &_painter,  NodeItem *_nodeItem)const
         drawAllElement(_painter,_nodeItem->_right);
         //draw line
         if(_nodeItem->xParent>0)
-            _painter.drawLine(_nodeItem->x*_diameter/2,_nodeItem->y*_nodeLineWidth,_nodeItem->xParent*_diameter/2,_nodeItem->yParent*_nodeLineWidth);
+            _painter.drawLine(_nodeItem->x*_diameter/2,_nodeItem->y*_nodeLineHeight,_nodeItem->xParent*_diameter/2,_nodeItem->yParent*_nodeLineHeight);
         //draw cycle
         QPainterPath myPath;
-        myPath.addEllipse(QPoint(_nodeItem->x*_diameter/2,_nodeItem->y*_nodeLineWidth),_radius,_radius);
+        myPath.addEllipse(QPoint(_nodeItem->x*_diameter/2,_nodeItem->y*_nodeLineHeight),_radius,_radius);
         _painter.drawPath(myPath);
         _painter.fillPath(myPath,_nodeItem->color==Red?Qt::red:Qt::black);
         //draw text
         _painter.setPen(Qt::white);
-        _painter.drawText(QRect(_nodeItem->x*_diameter/2-_radius,_nodeItem->y*_nodeLineWidth-_radius,_diameter,_diameter),Qt::AlignCenter,QString::number(_nodeItem->_value));
+        _painter.drawText(QRect(_nodeItem->x*_diameter/2-_radius,_nodeItem->y*_nodeLineHeight-_radius,_diameter,_diameter),Qt::AlignCenter,QString::number(_nodeItem->_value));
         _painter.setPen(Qt::black);
     }
 }
@@ -243,18 +242,18 @@ void TreeShow::drawCurrentNodeItem(NodeItem *_nodeItem) const
     drawAllElement(pp,_rootForDraw);
 
     QPainterPath myPath;
-    myPath.addEllipse(QPoint(_nodeItem->x*_diameter/2,_nodeItem->y*_nodeLineWidth),_radius+5,_radius+5);
+    myPath.addEllipse(QPoint(_nodeItem->x*_diameter/2,_nodeItem->y*_nodeLineHeight),_radius+5,_radius+5);
     pp.drawPath(myPath);
     pp.fillPath(myPath,_nodeItem->color==Red?Qt::red:Qt::black);
     pp.setPen(Qt::white);
-    pp.drawText(QRect(_nodeItem->x*_diameter/2-_radius,_nodeItem->y*_nodeLineWidth-_radius,_diameter,_diameter),Qt::AlignCenter,QString::number(_nodeItem->_value));
+    pp.drawText(QRect(_nodeItem->x*_diameter/2-_radius,_nodeItem->y*_nodeLineHeight-_radius,_diameter,_diameter),Qt::AlignCenter,QString::number(_nodeItem->_value));
     pp.setPen(Qt::black);
 }
 
-TreeShow::NodeItem *TreeShow::search(TreeShow::Action &action) const
+TreeShow::NodeItem *TreeShow::search(TreeShow::Action &action)
 {
-    auto _nodeItem=_hashForNodeItem.value(action.array[0]);
-    return _nodeItem;
+    _searchNodeItem=_hashForNodeItem.value(action.array[0]);
+    return _searchNodeItem;
 }
 
 void TreeShow::add(TreeShow::Action &action)
@@ -314,11 +313,13 @@ void TreeShow:: paintColor(NodeItem * root, QPainter & pp, int dx) const
     if(root==nullptr)
         return;
     QPainterPath myPath;
-    myPath.addEllipse(QPoint(root->x*_diameter/2,root->y*_nodeLineWidth),_radius+dx,_radius+dx);
+    if(_searchNodeItem==root)
+        dx=5;
+    myPath.addEllipse(QPoint(root->x*_diameter/2,root->y*_nodeLineHeight),_radius+dx,_radius+dx);
     pp.drawPath(myPath);
     pp.fillPath(myPath,root->color==Red?Qt::red:Qt::black);
     pp.setPen(Qt::white);
-    pp.drawText(QRect(root->x*_diameter/2-_radius,root->y*_nodeLineWidth-_radius,_diameter,_diameter),Qt::AlignCenter,QString::number(root->_value));
+    pp.drawText(QRect(root->x*_diameter/2-_radius,root->y*_nodeLineHeight-_radius,_diameter,_diameter),Qt::AlignCenter,QString::number(root->_value));
     pp.setPen(Qt::black);
 }
 
@@ -395,6 +396,7 @@ void TreeShow::dispatchActionAndDraw(Action &action)
         break;
     case Operator::Done:
         done(action);
+        drawAllElement();
         break;
     }
 }
@@ -406,7 +408,7 @@ void TreeShow::insertAndRemoveOfNodeItem()
         auto action=_arrayForOrder[_step];
         switch (action._ope) {
             case Operator::Search:
-                search(action);
+//                search(action);
                 break;
             case Operator::Add:
                 add(action);
@@ -442,9 +444,6 @@ void TreeShow::resizeEvent(QResizeEvent *event)
 // here is the definition of rbtree
 void TreeShow::RBtreeNodeInitial()
 {
-    _sentinel=new Node<int>(-9999);
-    _sentinel->_prev=_sentinel->_next=_sentinel;
-
     root=NIL=new Node<int>(-9998);
     NIL->color=Black;
     NIL->parent=NIL->left=NIL->right=NIL;
@@ -744,7 +743,7 @@ void TreeShow::removeFixUpOfLostOfBlack(Node<int> *root) {
                 root_brother->color = Red;
                 _arrayForOrder.append({Operator::ChangeColor,{root_brother->item,0,-1,2,-1,2}});
                 root = root->parent;
-//                _arrayForOrder.append({Operator::Search,{root->item}});
+                _arrayForOrder.append({Operator::Search,{root->item}});
             } else {
                 Node<int> * &root_parent = getParentReference(root->parent);
                 if (root_brother->right->color == Black) {	//case 3
@@ -763,7 +762,7 @@ void TreeShow::removeFixUpOfLostOfBlack(Node<int> *root) {
                 //利用枚举默认值也是和我们的规定值相等,否则下面要判断
                 _arrayForOrder.append({Operator::ChangeColor,{root_parent->item,root_parent->color,root_parent->left->item,1,root_parent->right->item,1}});
                 root = this->root;
-//                _arrayForOrder.append({Operator::Search,{root->item}});
+                _arrayForOrder.append({Operator::Search,{root->item}});
             }
         } else {
             root_brother = root->parent->left;
@@ -781,7 +780,7 @@ void TreeShow::removeFixUpOfLostOfBlack(Node<int> *root) {
                 root_brother->color = Red;
                 _arrayForOrder.append({Operator::ChangeColor,{root_brother->item,0,-1,2,-1,2}});
                 root = root->parent;
-//                _arrayForOrder.append({Operator::Search,{root->item}});
+                _arrayForOrder.append({Operator::Search,{root->item}});
             } else {
                 Node<int> * &root_parent = getParentReference(root->parent);
                 if (root_brother->left->color == Black) {	//case 3
@@ -798,12 +797,11 @@ void TreeShow::removeFixUpOfLostOfBlack(Node<int> *root) {
                 root_parent->right->color = Black;
                 _arrayForOrder.append({Operator::ChangeColor,{root_parent->item,root_parent->color,root_parent->left->item,1,root_parent->right->item,1}});
                 root = this->root;
-//                _arrayForOrder.append({Operator::Search,{root->item}});
+                _arrayForOrder.append({Operator::Search,{root->item}});
             }
         }
     }
     root->color = Black;
-    _arrayForOrder.append({Operator::Search,{root->item}});
     _arrayForOrder.append({Operator::ChangeColor,{root->item,1,-1,2,-1,2}});
 }
 
