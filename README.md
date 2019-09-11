@@ -20,6 +20,8 @@ make
 
 其他可以试着玩玩
 
+![](/home/kmp/qt_workspace/treedemo/glance.png)
+
 #### 有待解决的问题
 
 - 根据窗口大小调节合适的节点大小,并且节点过小时予以提示
