@@ -20,7 +20,7 @@ make
 
 其他可以试着玩玩
 
-![](/home/kmp/qt_workspace/treedemo/glance.png)
+![](./glance.png)
 
 #### 有待解决的问题
 
