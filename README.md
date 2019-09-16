@@ -6,11 +6,12 @@ qt写的用来观察红黑树插入修改过程.模拟插入删除,包括每一�
 需要qt5.9以上编译,按理说,支持c++11较低版本qt也是可以的
 
 两种方式编译
+
 1.使用qtcreator打开treedemo.pro,然后构建运行.
-或者
-2.命令行
-qmake treedemo.pro
-make
+
+2.或者命令行
+* qmake treedemo.pro
+* make
     
 界面操作方式
 
