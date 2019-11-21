@@ -285,7 +285,7 @@ TreeShow::SomeNodeItem TreeShow::changeColor(TreeShow::Action &action)
 {
     int i=0;
     //qt5.13紧急修复：linux下gcc编译，是被初始化为nullptr的，win8.1下需要手动初始化为nullptr
-    SomeNodeItem forReturn{nullptr,nullptr,nullptr};
+    SomeNodeItem forReturn{{nullptr,nullptr,nullptr}};
     while(i<3){
         auto colorValue=action.array[2*i+1];
         if(colorValue>1)
