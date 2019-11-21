@@ -12,7 +12,7 @@ Widget::Widget(QWidget *parent) : QWidget(parent), ui(new Ui::Widget) {
     connect(_ButtonGroup,static_cast<void (QButtonGroup::*)(int)>(&QButtonGroup::buttonClicked),[=](int id) {
         _fuck = id;
         if(id==2){
-            showInfo("未实现","");
+            showInfo("未实现%1","");
             return ;
         }
         ui->_TextBrowserInfo->append(
@@ -40,13 +40,13 @@ Widget::Widget(QWidget *parent) : QWidget(parent), ui(new Ui::Widget) {
         if(a)
             ui->lcdNumber_2->display(--_numberOfValueLeft);
         else {
-            showInfo("重复!","");
+            showInfo("重复!%1","");
         }
     });
     connect(ui->_TreeShow,&TreeShow::noMorePicture,[=](){
         _timerForDetail.stop();
         _timerCommon.stop();
-        showInfo("模拟完成,已无数据", "");
+        showInfo("模拟完成,已无数据%1", "");
         ui->_PushButtonForTask->setDisabled(false);
         ui->_CheckBoxForShowDetail->setDisabled(false);
     });
@@ -70,7 +70,7 @@ void Widget::on__InitialTreeButton_clicked() {
     ui->_PushButtonForTask->setDisabled(false);
     ui->_PushButtonStep1_4->setDisabled(false);
     ui->_CheckBoxForShowDetail->setDisabled(false);
-    showInfo("初始化完成","");
+    showInfo("初始化完成%1","");
 }
 
 void Widget::on_tabWidget_tabBarClicked(int index) {
@@ -119,7 +119,7 @@ void Widget::on__PushButtonForTask_clicked() {
         return;
     }
     if(_rangeRight>10000||_rangeLeft<-9998){
-        showInfo("范围是-9997到9999","");
+        showInfo("范围是-9997到9999%1","");
         return;
     }
 
@@ -134,12 +134,12 @@ void Widget::on__PushButtonForTask_clicked() {
         }
         showInfo("顺序任务生成成功:插入 %1 个节点",ui->_TreeShow->getAllTreeNodeCount()-currentNodeItemCount);
     }else if(_whichToChose==2){     //自定义
-        showInfo("暂未实现","");
+        showInfo("暂未实现%1","");
         return ;
     }else {
         return ;
     }
-    showInfo("当前可进行放映模拟过程","");
+    showInfo("当前可进行放映模拟过程%1","");
     ui->_PushButtonForTask->setDisabled(true);
     ui->_PushButtonStep1_4->setDisabled(true);
     _numberOfValueLeft=ui->_TreeShow->getAllTreeNodeCount()-currentNodeItemCount;
@@ -254,7 +254,7 @@ void Widget::on__stopButton2_clicked()
 
 void Widget::on__prevStepButton_clicked()
 {
-    showInfo("暂未实现","");
+    showInfo("暂未实现%1","");
 }
 
 
@@ -269,5 +269,5 @@ void Widget::on__nextStepButton_clicked()
 void Widget::on_comboBox_currentIndexChanged(int index)
 {
     if(index==2)
-        showInfo("暂未实现","");
+        showInfo("暂未实现%1","");
 }
