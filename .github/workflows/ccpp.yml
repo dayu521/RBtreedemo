@@ -12,7 +12,7 @@ jobs:
       matrix:
         qt_version: [5.14.2]
         platform: [windows-latest]
-        arch: [x86, x64]
+        arch: [x64]
         include: 
           - platform: windows-latest
             arch: x64
@@ -31,7 +31,8 @@ jobs:
         run: |
           mkdir build
           cd build
-          qmake .. CONFIG+="debug_and_release" PREFIX=/usr
+          qmake .. CONFIG+="debug_and_release"
+        shell: bash
 #       - name: Unix - ${{ matrix.qt_version }} - Build 
 #         run: |
 #           cd build
