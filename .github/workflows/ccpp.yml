@@ -15,9 +15,6 @@ jobs:
         arch: [x86, x64]
         include: 
           - platform: windows-latest
-            arch: x86
-            qtarch: win32_msvc2017
-          - platform: windows-latest
             arch: x64
             qtarch: win64_msvc2017_64
           
@@ -31,11 +28,10 @@ jobs:
           arch: ${{ matrix.qtarch }}
           mirror: 'http://mirrors.ocf.berkeley.edu/qt/'
       - name: ${{ matrix.qt_version }} - Generate Dependencies and Makefile
-        shell: cmd
         run: |
           mkdir build
           cd build
-          qmake .. CONFIG+="debug_and_release no_increase_build_number" PREFIX=/usr
+          qmake .. CONFIG+="debug_and_release" PREFIX=/usr
 #       - name: Unix - ${{ matrix.qt_version }} - Build 
 #         run: |
 #           cd build
