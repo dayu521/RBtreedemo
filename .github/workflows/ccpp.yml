@@ -8,16 +8,65 @@ on:
 
 jobs:
   build:
-
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        qt_version: [5.14.2]
+        platform: [windows-latest]
+        arch: [x86, x64]
+        include: 
+          - platform: windows-latest
+            arch: x86
+            qtarch: win32_msvc2017
+          - platform: windows-latest
+            arch: x64
+            qtarch: win64_msvc2017_64
+          
+    runs-on: ${{ matrix.platform }}
 
     steps:
-    - uses: actions/checkout@v2
-    - name: configure
-      run: ./configure
-    - name: make
-      run: make
-    - name: make check
-      run: make check
-    - name: make distcheck
-      run: make distcheck
+     - name: Install Qt
+        uses: jurplel/install-qt-action@v2.6.2
+        with:
+        version: ${{ matrix.qt_version }}
+        arch: ${{ matrix.qtarch }}
+        mirror: 'http://mirrors.ocf.berkeley.edu/qt/'
+      - name: ${{ matrix.qt_version }} - Generate Dependencies and Makefile
+        shell: bash
+        run: |
+          mkdir build
+          cd build
+          qmake .. CONFIG+="debug_and_release no_increase_build_number" PREFIX=/usr
+       - name: Unix - ${{ matrix.qt_version }} - Build 
+        if: matrix.platform != 'windows-latest'
+        run: |
+          cd build
+          make -j2 release    
+       - name: Win-${{ matrix.arch }} - ${{ matrix.qt_version }} - Build 
+        run: |
+          cd build
+          nmake release           
+       - name: Win-${{ matrix.arch }} - ${{ matrix.qt_version }} - Running windeployqt
+        shell: cmd
+        run: |
+          cd build
+          cd release
+          del *.cpp *.h *.o *.qrc *.qm *.hpp *.obj
+          windeployqt ./treedemo.exe --compiler-runtime --verbose 2   
+        - name: Win-${{ matrix.arch }} - ${{ matrix.qt_version }} - Create 7z Release
+        uses: DuckSoft/create-7z-action@v1.0
+        with:
+          pathSource: ./build/release/
+          pathTarget: ./release.7z
+        - name: Win-${{ matrix.arch }} - ${{ matrix.qt_version }} - Uploading artifact
+        uses: actions/upload-artifact@master
+        with:
+          name: ${{ github.sha }}.Windows-${{ matrix.arch }}.qt${{ matrix.qt_version }}.7z
+          path: release.7z             
+        - name: Win-${{ matrix.arch }} - ${{ matrix.qt_version }} - Upload binaries to release
+        uses: svenstaro/upload-release-action@v1-release
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: release.7z
+          asset_name: Windows-${{ matrix.arch }}.qt${{ matrix.qt_version }}.7z
+          tag: ${{ github.ref }}
+          overwrite: true
