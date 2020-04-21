@@ -31,15 +31,15 @@ jobs:
           arch: ${{ matrix.qtarch }}
           mirror: 'http://mirrors.ocf.berkeley.edu/qt/'
       - name: ${{ matrix.qt_version }} - Generate Dependencies and Makefile
-        shell: bash
+        shell: cmd
         run: |
           mkdir build
           cd build
           qmake .. CONFIG+="debug_and_release no_increase_build_number" PREFIX=/usr
-      - name: Unix - ${{ matrix.qt_version }} - Build 
-        run: |
-          cd build
-          make -j2 release    
+#       - name: Unix - ${{ matrix.qt_version }} - Build 
+#         run: |
+#           cd build
+#           make -j2 release    
       - name: Win-${{ matrix.arch }} - ${{ matrix.qt_version }} - Build 
         run: |
           cd build
