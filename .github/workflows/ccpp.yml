@@ -31,7 +31,7 @@ jobs:
         run: |
           mkdir build
           cd build
-          qmake .. CONFIG+="debug_and_release"
+          qmake ../treedemo.pro CONFIG+="debug_and_release"
         shell: bash
 #       - name: Unix - ${{ matrix.qt_version }} - Build 
 #         run: |
