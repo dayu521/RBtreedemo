@@ -43,7 +43,7 @@ jobs:
           cd build
           call ${{ matrix.config.environment_script }}
           qmake ../treedemo.pro CONFIG+="debug_and_release"
-        shell: bash
+        shell: cmd
 #       - name: Unix - ${{ matrix.qt_version }} - Build 
 #         run: |
 #           cd build
