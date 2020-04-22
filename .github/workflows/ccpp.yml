@@ -37,27 +37,29 @@ jobs:
           cached: ${{ steps.cache-qt.outputs.cache-hit }}
       - name: Checking out sources
         uses: actions/checkout@master
-      - name: ${{ matrix.qt_version }} - Generate Dependencies and Makefile
+      - name: ${{ matrix.qt_version }} - Generate Dependencies and Makefile and Win-${{ matrix.arch }} - ${{ matrix.qt_version }} - Build 
         run: |
           mkdir build
           cd build
           call "${{ matrix.config.environment_script }}"
           qmake ../treedemo.pro CONFIG+="debug_and_release"
+          nmake release  
         shell: cmd
 #       - name: Unix - ${{ matrix.qt_version }} - Build 
 #         run: |
 #           cd build
 #           make -j2 release    
-      - name: Win-${{ matrix.arch }} - ${{ matrix.qt_version }} - Build 
-        run: |
-          cd build
-          nmake release           
+#       - name: Win-${{ matrix.arch }} - ${{ matrix.qt_version }} - Build 
+#         run: |
+#           cd build
+#           nmake release           
       - name: Win-${{ matrix.arch }} - ${{ matrix.qt_version }} - Running windeployqt
         shell: cmd
         run: |
           cd build
           cd release
           del *.cpp *.h *.o *.qrc *.qm *.hpp *.obj
+          set VCINSTALLDIR=C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\
           windeployqt ./treedemo.exe --compiler-runtime --verbose 2   
       - name: Win-${{ matrix.arch }} - ${{ matrix.qt_version }} - Create 7z Release
         uses: DuckSoft/create-7z-action@v1.0
