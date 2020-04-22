@@ -21,12 +21,21 @@ jobs:
     runs-on: ${{ matrix.platform }}
 
     steps:
+      - name: Cache Qt
+        id: cache-qt
+        uses: actions/cache@v1
+        with: 
+          path: ../Qt
+          key: ${{ runner.os }}-QtCache
       - name: Install Qt
         uses: jurplel/install-qt-action@v2.6.2
         with:
           version: ${{ matrix.qt_version }}
           arch: ${{ matrix.qtarch }}
           mirror: 'http://mirrors.ocf.berkeley.edu/qt/'
+          cached: ${{ steps.cache-qt.outputs.cache-hit }}
+      - name: Checking out sources
+        uses: actions/checkout@master
       - name: ${{ matrix.qt_version }} - Generate Dependencies and Makefile
         run: |
           mkdir build
