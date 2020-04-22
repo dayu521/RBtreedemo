@@ -13,6 +13,7 @@ jobs:
         qt_version: [5.14.2]
         platform: [windows-latest]
         arch: [x64]
+        config: [environment_script: "C:/Program Files (x86)/Microsoft Visual Studio/2019/Enterprise/VC/Auxiliary/Build/vcvars64.bat"]
         include: 
           - platform: windows-latest
             arch: x64
@@ -40,6 +41,7 @@ jobs:
         run: |
           mkdir build
           cd build
+          call ${{ matrix.config.environment_script }}
           qmake ../treedemo.pro CONFIG+="debug_and_release"
         shell: bash
 #       - name: Unix - ${{ matrix.qt_version }} - Build 
