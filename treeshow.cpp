@@ -2,6 +2,7 @@
 #include<QPainter>
 #include<QDebug>
 #include<iostream>
+#include<QPainterPath>
 
 TreeShow::TreeShow(QWidget *parent):QLabel (parent)
 {
